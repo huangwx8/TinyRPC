@@ -72,4 +72,6 @@ int RpcServer::Main(int argc, char* argv[])
 {
     ServerConnectionManager->Listen();
     _Reactor->Run();
+
+    return 0;
 }

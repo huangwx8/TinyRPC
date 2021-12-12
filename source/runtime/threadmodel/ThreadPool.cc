@@ -32,7 +32,7 @@ ThreadPool::~ThreadPool()
 
 bool ThreadPool::AddTask(std::function<void()> &&job)
 {
-    tasks_.Enqueue(std::forward<std::function<void()>>(job));
+    return tasks_.Enqueue(std::forward<std::function<void()>>(job));
 }
 
 void ThreadPool::Stop()

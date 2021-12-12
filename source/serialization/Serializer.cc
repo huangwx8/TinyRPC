@@ -18,6 +18,7 @@ int Serializer::Serialize(DataType InType, const void* In ,char* OutBuffer)
         strcpy(OutBuffer, static_cast<const char*>(In));
         return strlen(static_cast<const char*>(In)) + 1;
     }
+    return -1;
 }
 
 int Serializer::Deserialize(const char* InBuffer, DataType OutType, void* Out)
@@ -37,4 +38,5 @@ int Serializer::Deserialize(const char* InBuffer, DataType OutType, void* Out)
         strcpy(static_cast<char*>(Out), InBuffer);
         return strlen(static_cast<const char*>(InBuffer)) + 1;
     }
+    return -1;
 }
