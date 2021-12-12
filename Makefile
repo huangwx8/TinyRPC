@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-g -std=c++11
+CFLAGS=-g -std=c++11 -lpthread
 SERVERFLAGS=-DBUILD_SERVER
 CLIENTFLAGS=-DBUILD_CLIENT
 
@@ -25,10 +25,10 @@ OUT=${OUTSERVER} ${OUTCLIENT}
 all: ${OUT}
 
 ${OUTSERVER}: ${OUTSERVEROBJECTS}
-	$(CC) -o $@ $^
+	$(CC) -o $@ $^ $(CFLAGS)
 
 ${OUTCLIENT}: ${OUTCLIENTOBJECTS}
-	$(CC) -o $@ $^
+	$(CC) -o $@ $^ $(CFLAGS)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cc 
 	$(CC) -c $(INCLUDE) -o $@ $< $(CFLAGS)

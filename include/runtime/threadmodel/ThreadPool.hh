@@ -34,4 +34,6 @@ private:
     std::vector<std::thread> threads_;
 
     SafeQueue<std::function<void()>> tasks_;
+
+    bool m_stop;
 };
