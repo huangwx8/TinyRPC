@@ -1,6 +1,7 @@
 #pragma once
 
 // std c++
+#include <atomic>
 #include <functional>
 #include <thread>
 #include <vector>
@@ -35,5 +36,5 @@ private:
 
     SafeQueue<std::function<void()>> tasks_;
 
-    bool m_stop;
+    std::atomic<bool> m_stop;
 };

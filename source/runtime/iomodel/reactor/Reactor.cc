@@ -11,10 +11,6 @@ Reactor::Reactor(Poller* InPoller, EventHandler* InEventHandler):
 
 Reactor::~Reactor()
 {
-    if (MainHandler)
-    {
-        delete MainHandler;
-    }
 }
 
 void Reactor::Run()

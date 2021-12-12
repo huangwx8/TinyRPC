@@ -86,6 +86,7 @@ void Poller::Dispatch(int Timeout, EventHandler& Handler)
         {
             throw "Unexcepted event";
         }
+        printf("Poller::Dispatch: Event [%d] on fd [%d]\n", Type, Sockfd);
         Handler.HandleEvent(Sockfd, static_cast<EventHandler::EventType>(Type));
     }
 }
