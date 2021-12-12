@@ -30,6 +30,7 @@ EventHandlerManager::~EventHandlerManager()
 
 void EventHandlerManager::HandleEvent(int Fd, EventType Type)
 {
+    //printf("EventHandlerManager::HandleEvent Fd = [%d], Type = [%d]\n", Fd, Type);
     if (Type == 0)
     {
         return;

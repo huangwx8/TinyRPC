@@ -32,8 +32,9 @@ public:
     bool Enqueue(T&& t)
     {
         std::unique_lock<std::mutex> lock(m);
+        // printf("SafeQueue::Enqueue from thread ");
+        // std::cout << std::this_thread::get_id() << std::endl;
 
-        std::cout << "SafeQueue::Enqueue: start enqueue from thread [" << std::this_thread::get_id() << "]\n";
         if (q.size() >= maxsize)
         {
             return false;
@@ -41,8 +42,6 @@ public:
 
         q.push(t);
         c.notify_one();
-
-        std::cout << "SafeQueue::Enqueue: notify_one() from thread [" << std::this_thread::get_id() << "]\n";
 
         return true;
     }
@@ -64,9 +63,7 @@ public:
                 // release lock as long as
                 // 1. some thread add a new task
                 // 2. this queue is going to be destructed.
-                std::cout << "SafeQueue::Dequeue: start wait() from thread [" << std::this_thread::get_id() << "]\n";
                 c.wait(lock);
-                std::cout << "SafeQueue::Dequeue: stop wait() from thread [" << std::this_thread::get_id() << "]\n";
             }
             else
             {
@@ -82,6 +79,8 @@ public:
         {
             data = q.front();
             q.pop();
+            // printf("SafeQueue::Dequeue from thread ");
+            // std::cout << std::this_thread::get_id() << std::endl;
         }
         return true;
     }

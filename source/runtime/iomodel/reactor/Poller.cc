@@ -48,6 +48,8 @@ Poller::~Poller()
 
 std::vector<std::function<void()>> Poller::Dispatch(int Timeout, EventHandler& Handler)
 {
+    //printf("Poller::Dispatch\n");
+
     std::vector<std::function<void()>> tasks;
 
     int NumEvents = epoll_wait(Epollfd, Events, MaxEvents + 1, Timeout);
@@ -88,13 +90,13 @@ std::vector<std::function<void()>> Poller::Dispatch(int Timeout, EventHandler& H
         {
             throw "Unexcepted event";
         }
-        printf("Poller::Dispatch: Event [%d] on fd [%d]\n", Type, Sockfd);
         tasks.push_back(
-            [&]()
+            [&Handler, Sockfd, Type]()
             {
                 Handler.HandleEvent(Sockfd, static_cast<EventHandler::EventType>(Type));
             }
         );
+        //printf("Event [%d] on fd [%d]\n", Type, Sockfd);
     }
     return tasks;
 }
@@ -118,6 +120,6 @@ void Poller::ModEvent(int Fd, uint32_t InEvents)
 void Poller::CtrlEvent(int Fd, uint32_t InEvents, int Operation)
 {
     epoll_data_t data{.fd = Fd};
-    epoll_event event{.events = InEvents, .data = data};
+    epoll_event event{.events = InEvents | EPOLLET, .data = data};
     epoll_ctl(Epollfd, Operation, Fd, &event);
 }

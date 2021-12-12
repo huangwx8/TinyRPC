@@ -1,8 +1,11 @@
 #include <runtime/handlemodel/EventHandler.hh>
 
+#include <stdio.h>
+
 
 void EventHandler::HandleEvent(int Fd, EventType Type)
 {
+    //printf("EventHandler::HandleEvent Fd = [%d], Type = [%d]\n", Fd, Type);
     switch (Type)
     {
     case CLOSE_EVENT:
