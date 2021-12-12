@@ -1,25 +1,24 @@
 #pragma once
 
-class Poller;
-class EventHandler;
+// inner
+#include <runtime/iomodel/reactor/Poller.hh>
+#include <runtime/threadmodel/ThreadPool.hh>
+#include <runtime/handlemodel/EventHandler.hh>
+
 
 class Reactor
 {
 public:
-    struct Options 
-    {
-        int id;
-        Poller* poller;
-        EventHandler* handler;
-    };
+    typedef EventHandler* (*EventHandlerFactoryFunction)();
 
-    Reactor(const Options& options);
+    Reactor(Poller* InPoller, EventHandler* InEventHandler);
 
     virtual ~Reactor();
 
     void Run();
 
 private:
+    ThreadPool _Threadpool;
     Poller* _Poller;
-    EventHandler* Handler;
+    EventHandler* MainHandler;
 };

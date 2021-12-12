@@ -2,6 +2,7 @@
 
 class RpcServiceProxy;
 class Poller;
+class ThreadPool;
 class EventHandlerManager;
 class ConnectionManager;
 class RpcRequestHandler;
@@ -29,9 +30,9 @@ public:
     int Main(int argc, char* argv[]);
 
 private:
-    Poller* _Poller;
-    EventHandlerManager* EventHandlerMgr;
-    ConnectionManager* ServerConnectionManager;
     RpcRequestHandler* RequestHandler;
-    Reactor* _Reactor;
+    EventHandlerManager* EventHandlerMgr;
+    Poller* poller;
+    Reactor* reactor;
+    ConnectionManager* ServerConnectionManager;
 };

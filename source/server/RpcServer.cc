@@ -8,59 +8,61 @@
 #include <runtime/iomodel/reactor/Reactor.hh>
 #include <runtime/handlemodel/EventHandler.hh>
 #include <runtime/handlemodel/EventHandlerManager.hh>
+#include <runtime/threadmodel/ThreadPool.hh>
 
 #include <transport/ConnectionMgr.hh>
 
 
 RpcServer::RpcServer():
-    _Poller(nullptr),
-    EventHandlerMgr(nullptr),
-    ServerConnectionManager(nullptr),
     RequestHandler(nullptr),
-    _Reactor(nullptr)
+    EventHandlerMgr(nullptr),
+    poller(nullptr),
+    reactor(nullptr),
+    ServerConnectionManager(nullptr)
 {
 
 }
 
 RpcServer::~RpcServer()
 {
-    if (_Poller)
+    if (RequestHandler)
     {
-        delete _Poller;
-        _Poller = nullptr;
+        delete RequestHandler;
+        RequestHandler = nullptr;
     }
     if (EventHandlerMgr)
     {
         delete EventHandlerMgr;
         EventHandlerMgr = nullptr;
     }
+    if (poller)
+    {
+        delete poller;
+        poller = nullptr;
+    }
+    if (reactor)
+    {
+        delete reactor;
+        reactor = nullptr;
+    }
     if (ServerConnectionManager)
     {
         delete ServerConnectionManager;
         ServerConnectionManager = nullptr;
     }
-    if (RequestHandler)
-    {
-        delete RequestHandler;
-        RequestHandler = nullptr;
-    }
-    if (_Reactor)
-    {
-        delete _Reactor;
-        _Reactor = nullptr;
-    }
 }
 
 void RpcServer::Initialize()
 {
-    // create poller
-    _Poller = new Poller();
     // create event handlers
-    EventHandlerMgr = new EventHandlerManager();
     RequestHandler = new RpcRequestHandler();
-    ServerConnectionManager = new ConnectionManager(_Poller, EventHandlerMgr, RequestHandler);
+    EventHandlerMgr = new EventHandlerManager();
+    // poller
+    poller = new Poller();
     // reactor
-    _Reactor = new Reactor(Reactor::Options{.id = 0, .poller = _Poller, .handler = EventHandlerMgr});
+    reactor = new Reactor(poller, dynamic_cast<EventHandler*>(EventHandlerMgr));
+    // connections
+    ServerConnectionManager = new ConnectionManager(poller, EventHandlerMgr, RequestHandler);
 }
 
 void RpcServer::RegisterService(RpcServiceProxy* Service)
@@ -71,7 +73,6 @@ void RpcServer::RegisterService(RpcServiceProxy* Service)
 int RpcServer::Main(int argc, char* argv[])
 {
     ServerConnectionManager->Listen();
-    _Reactor->Run();
-
+    reactor->Run();
     return 0;
 }

@@ -9,6 +9,8 @@
 class EventHandlerManager: public EventHandler 
 {
 public:
+    static EventHandler* CreateInstance();
+
     EventHandlerManager();
     virtual ~EventHandlerManager();
 

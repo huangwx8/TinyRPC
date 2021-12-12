@@ -12,6 +12,11 @@ static inline int GetEventId(int Fd, EventHandler::EventType Type)
     return (Fd << 2) | EventHandler::EventTypeToEventId(Type);
 }
 
+EventHandler* EventHandlerManager::CreateInstance()
+{
+    return new EventHandlerManager;
+}
+
 EventHandlerManager::EventHandlerManager():
     _list(new EventHandler *[MAX_EVENT_HANDLERS])
 {

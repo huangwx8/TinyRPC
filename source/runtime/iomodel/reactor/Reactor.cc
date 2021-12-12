@@ -1,24 +1,30 @@
-// inner
+// self
 #include <runtime/iomodel/reactor/Reactor.hh>
-#include <runtime/iomodel/reactor/Poller.hh>
-#include <runtime/handlemodel/EventHandler.hh>
 
-Reactor::Reactor(const Options& options):
-    _Poller(options.poller),
-    Handler(options.handler)
+Reactor::Reactor(Poller* InPoller, EventHandler* InEventHandler):
+    _Threadpool(4, 10000),
+    _Poller(InPoller),
+    MainHandler(InEventHandler)
 {
-    
+
 }
 
 Reactor::~Reactor()
 {
-    
+    if (MainHandler)
+    {
+        delete MainHandler;
+    }
 }
 
 void Reactor::Run()
 {
     while (1) 
     {
-        _Poller->Dispatch(-1, *Handler);
+        auto task = [this]()
+        {
+            this->_Poller->Dispatch(-1, *MainHandler);
+        };
+        _Threadpool.AddTask(task);
     }
 }

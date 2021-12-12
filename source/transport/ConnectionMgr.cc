@@ -44,7 +44,7 @@ ConnectionManager::ConnectionManager(
     Poller* InPoller, 
     EventHandlerManager* InEventHandlerMgr,
     EventHandler* InReader
-    ):
+):
     _Poller(InPoller),
     EventHandlerMgr(InEventHandlerMgr),
     Reader(InReader),
