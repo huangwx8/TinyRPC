@@ -31,7 +31,7 @@ ThreadPool::~ThreadPool()
 
 bool ThreadPool::AddTask(std::function<void()> &&job)
 {
-
+    return 1;
 }
 
 void ThreadPool::Join()

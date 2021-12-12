@@ -6,8 +6,8 @@
 
 #include <runtime/iomodel/reactor/Poller.hh>
 #include <runtime/iomodel/reactor/Reactor.hh>
-#include <runtime/iomodel/EventHandler.hh>
-#include <runtime/iomodel/EventHandlerManager.hh>
+#include <runtime/handlemodel/EventHandler.hh>
+#include <runtime/handlemodel/EventHandlerManager.hh>
 
 #include <transport/ConnectionMgr.hh>
 

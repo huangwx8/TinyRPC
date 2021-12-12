@@ -1,7 +1,7 @@
 // inner
 #include <runtime/iomodel/reactor/Reactor.hh>
 #include <runtime/iomodel/reactor/Poller.hh>
-#include <runtime/iomodel/EventHandler.hh>
+#include <runtime/handlemodel/EventHandler.hh>
 
 Reactor::Reactor(const Options& options):
     _Poller(options.poller),

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <algorithm>
 
-#include <runtime/iomodel/EventHandlerManager.hh>
+#include <runtime/handlemodel/EventHandlerManager.hh>
 
 #define MAX_FILE_DESCRIPTORS 65536
 #define MAX_EVENT_HANDLERS (MAX_FILE_DESCRIPTORS << 2)

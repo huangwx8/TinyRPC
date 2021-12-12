@@ -13,7 +13,7 @@
 
 // inner
 #include <runtime/iomodel/reactor/Poller.hh>
-#include <runtime/iomodel/EventHandler.hh>
+#include <runtime/handlemodel/EventHandler.hh>
 
 #define MAX_EVENTS 10240
 

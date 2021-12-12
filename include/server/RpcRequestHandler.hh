@@ -5,7 +5,7 @@
 #include <unordered_map>
 
 // inner
-#include <runtime/iomodel/EventHandler.hh>
+#include <runtime/handlemodel/EventHandler.hh>
 
 class RpcServiceProxy;
 

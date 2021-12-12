@@ -13,8 +13,8 @@
 
 // inner
 #include <transport/ConnectionMgr.hh>
-#include <runtime/iomodel/EventHandler.hh>
-#include <runtime/iomodel/EventHandlerManager.hh>
+#include <runtime/handlemodel/EventHandler.hh>
+#include <runtime/handlemodel/EventHandlerManager.hh>
 #include <runtime/iomodel/reactor/Poller.hh>
 
 // c-style creator

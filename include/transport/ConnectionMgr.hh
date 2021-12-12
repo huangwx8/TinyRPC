@@ -1,6 +1,6 @@
 #pragma once
 
-#include <runtime/iomodel/EventHandler.hh>
+#include <runtime/handlemodel/EventHandler.hh>
 
 class Poller;
 class EventHandlerManager;
