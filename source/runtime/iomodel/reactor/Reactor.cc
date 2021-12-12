@@ -17,10 +17,10 @@ void Reactor::Run()
 {
     while (1) 
     {
-        auto task = [this]()
+        auto tasks = _Poller->Dispatch(-1, *MainHandler);
+        for (auto& task : tasks)
         {
-            this->_Poller->Dispatch(-1, *MainHandler);
-        };
-        _Threadpool.AddTask(task);
+            _Threadpool.AddTask(std::move(task));
+        }
     }
 }

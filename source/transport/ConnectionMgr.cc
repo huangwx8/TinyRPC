@@ -103,7 +103,7 @@ void ConnectionManager::HandleAcceptEvent()
 void ConnectionManager::Add(int Fd)
 {
     EventHandlerMgr->AttachEventHandler(Fd, EventHandler::CLOSE_EVENT, this);
-    // 如果是listenfd，则由this读取，否则转交Reader
+    // 如果是listenfd，则由this处理ReadEvent，否则转交Reader
     if (ListenFd == Fd)
     {
         EventHandlerMgr->AttachEventHandler(Fd, EventHandler::READ_EVENT, this);

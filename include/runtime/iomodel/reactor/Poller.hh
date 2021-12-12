@@ -1,6 +1,10 @@
 #pragma once
 
+// std c++
+#include <vector>
 #include <functional>
+
+// linux
 #include <sys/types.h>
 
 #include "runtime/handlemodel/EventHandler.hh"
@@ -13,7 +17,7 @@ class Poller
 public:
     Poller();
     ~Poller();
-    void Dispatch(int Timeout, EventHandler &Handler);
+    std::vector<std::function<void()>> Dispatch(int Timeout, EventHandler &Handler);
     void AddEvent(int Fd, uint32_t InEvents);
     void DelEvent(int Fd, uint32_t InEvents);
     void ModEvent(int Fd, uint32_t InEvents);
