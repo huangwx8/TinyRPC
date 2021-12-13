@@ -21,19 +21,6 @@ RpcClient::~RpcClient()
     close(connfd);
 }
 
-int RpcClient::Main(int argc, char* argv[])
-{
-    if (argc <= 2)
-    {
-        printf("usage: %s ip_address port_number\n", basename(argv[0]));
-        return 1;
-    }
-    const char * ip = argv[1];
-    int port = atoi(argv[2]);
-    Initialize(ip, port);
-    return 0;
-}
-
 void RpcClient::Initialize(const char* ip, int port)
 {
     struct sockaddr_in server_address;
@@ -51,6 +38,19 @@ void RpcClient::Initialize(const char* ip, int port)
         close(sockfd);
     }
     connfd = sockfd;
+}
+
+int RpcClient::Main(int argc, char* argv[])
+{
+    if (argc <= 2)
+    {
+        printf("usage: %s ip_address port_number\n", basename(argv[0]));
+        return 1;
+    }
+    const char * ip = argv[1];
+    int port = atoi(argv[2]);
+    Initialize(ip, port);
+    return 0;
 }
 
 void RpcClient::SendRequest(const RpcMessage& Message)
