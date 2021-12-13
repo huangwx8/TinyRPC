@@ -10,7 +10,7 @@
 #include <runtime/handlemodel/EventHandlerManager.hh>
 #include <runtime/threadmodel/ThreadPool.hh>
 
-#include <transport/ConnectionMgr.hh>
+#include <transport/ServerConnectionManager.hh>
 
 
 RpcServer::RpcServer():

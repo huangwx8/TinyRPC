@@ -12,7 +12,7 @@
 #include <arpa/inet.h>
 
 // inner
-#include <transport/ConnectionMgr.hh>
+#include <transport/ServerConnectionManager.hh>
 #include <runtime/handlemodel/EventHandler.hh>
 #include <runtime/handlemodel/EventHandlerManager.hh>
 #include <runtime/iomodel/reactor/Poller.hh>
