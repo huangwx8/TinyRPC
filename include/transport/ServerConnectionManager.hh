@@ -5,15 +5,15 @@
 class Poller;
 class EventHandlerManager;
 
-class ConnectionManager: public EventHandler
+class ServerConnectionManager: public EventHandler
 {
 public:
-    ConnectionManager(
+    ServerConnectionManager(
         Poller* InPoller, 
         EventHandlerManager* InEventHandlerMgr,
         EventHandler* InReader
         );
-    virtual ~ConnectionManager();
+    virtual ~ServerConnectionManager();
 
     /**
      * If one EPOLLIN triggered at listenfd, try set up a new tcp connection 

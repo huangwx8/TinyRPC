@@ -4,7 +4,7 @@ class RpcServiceProxy;
 class Poller;
 class ThreadPool;
 class EventHandlerManager;
-class ConnectionManager;
+class ServerConnectionManager;
 class RpcRequestHandler;
 class Reactor;
 
@@ -34,5 +34,5 @@ private:
     EventHandlerManager* EventHandlerMgr;
     Poller* poller;
     Reactor* reactor;
-    ConnectionManager* ServerConnectionManager;
+    ServerConnectionManager* ServerConnectionMgr;
 };

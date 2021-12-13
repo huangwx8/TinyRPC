@@ -18,7 +18,7 @@ RpcServer::RpcServer():
     EventHandlerMgr(nullptr),
     poller(nullptr),
     reactor(nullptr),
-    ServerConnectionManager(nullptr)
+    ServerConnectionMgr(nullptr)
 {
 
 }
@@ -45,10 +45,10 @@ RpcServer::~RpcServer()
         delete reactor;
         reactor = nullptr;
     }
-    if (ServerConnectionManager)
+    if (ServerConnectionMgr)
     {
-        delete ServerConnectionManager;
-        ServerConnectionManager = nullptr;
+        delete ServerConnectionMgr;
+        ServerConnectionMgr = nullptr;
     }
 }
 
@@ -62,7 +62,7 @@ void RpcServer::Initialize()
     // reactor
     reactor = new Reactor(poller, dynamic_cast<EventHandler*>(EventHandlerMgr));
     // connections
-    ServerConnectionManager = new ConnectionManager(poller, EventHandlerMgr, RequestHandler);
+    ServerConnectionMgr = new ServerConnectionManager(poller, EventHandlerMgr, RequestHandler);
 }
 
 void RpcServer::RegisterService(RpcServiceProxy* Service)
@@ -72,7 +72,7 @@ void RpcServer::RegisterService(RpcServiceProxy* Service)
 
 int RpcServer::Main(int argc, char* argv[])
 {
-    ServerConnectionManager->Listen();
+    ServerConnectionMgr->Listen();
     reactor->Run();
     return 0;
 }

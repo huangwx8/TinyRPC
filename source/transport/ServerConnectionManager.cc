@@ -40,7 +40,7 @@ static int CreateListenFd(const char* ip, int port)
     return listenfd;
 }
 
-ConnectionManager::ConnectionManager(
+ServerConnectionManager::ServerConnectionManager(
     Poller* InPoller, 
     EventHandlerManager* InEventHandlerMgr,
     EventHandler* InReader
@@ -53,7 +53,7 @@ ConnectionManager::ConnectionManager(
    
 }
 
-ConnectionManager::~ConnectionManager()
+ServerConnectionManager::~ServerConnectionManager()
 {
     if (ListenFd >= 0)
     {
@@ -61,13 +61,13 @@ ConnectionManager::~ConnectionManager()
     }
 }
 
-void ConnectionManager::Listen()
+void ServerConnectionManager::Listen()
 {
     ListenFd = CreateListenFd("localhost", 8888);
     if (ListenFd >= 0)
     {
         Add(ListenFd);
-        printf("ConnectionManager::Listen: Start listening at fd [%d]\n", ListenFd);
+        printf("ServerConnectionManager::Listen: Start listening at fd [%d]\n", ListenFd);
     }
     else 
     {
@@ -75,17 +75,17 @@ void ConnectionManager::Listen()
     }
 }
 
-void ConnectionManager::HandleReadEvent(int Fd)
+void ServerConnectionManager::HandleReadEvent(int Fd)
 {
     HandleAcceptEvent();
 }
 
-void ConnectionManager::HandleCloseEvent(int Fd)
+void ServerConnectionManager::HandleCloseEvent(int Fd)
 {
     Del(Fd);
 }
 
-void ConnectionManager::HandleAcceptEvent()
+void ServerConnectionManager::HandleAcceptEvent()
 {
     // accept a new tcp connection request
     struct sockaddr_in ClientAddress;
@@ -93,14 +93,14 @@ void ConnectionManager::HandleAcceptEvent()
     int Connfd = accept(ListenFd, (struct sockaddr*)&ClientAddress, &ClientAddrLength);
     if (Connfd < 0)
     {
-        printf("ConnectionManager::HandleReadEvent: Accept failure, errno is %d\n", errno);
+        printf("ServerConnectionManager::HandleReadEvent: Accept failure, errno is %d\n", errno);
         return;
     }
-    printf("ConnectionManager::HandleAcceptEvent: Create a connection at fd [%d]\n", Connfd);
+    printf("ServerConnectionManager::HandleAcceptEvent: Create a connection at fd [%d]\n", Connfd);
     Add(Connfd);
 }
 
-void ConnectionManager::Add(int Fd)
+void ServerConnectionManager::Add(int Fd)
 {
     EventHandlerMgr->AttachEventHandler(Fd, EventHandler::CLOSE_EVENT, this);
     // 如果是listenfd，则由this处理ReadEvent，否则转交Reader
@@ -115,9 +115,9 @@ void ConnectionManager::Add(int Fd)
     _Poller->AddEvent(Fd, EPOLLIN | EPOLLERR | EPOLLRDHUP);
 }
 
-void ConnectionManager::Del(int Fd)
+void ServerConnectionManager::Del(int Fd)
 {
-    printf("ConnectionManager::HandleCloseEvent: close fd [%d]\n", Fd);
+    printf("ServerConnectionManager::HandleCloseEvent: close fd [%d]\n", Fd);
     EventHandlerMgr->DetachEventHandler(Fd, static_cast<EventHandler::EventType>(EventHandler::READ_EVENT | EventHandler::WRITE_EVENT | EventHandler::CLOSE_EVENT));
     _Poller->DelEvent(Fd, 0);
     close(Fd);
