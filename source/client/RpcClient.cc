@@ -11,33 +11,44 @@
 #include <stdlib.h>
 #include <poll.h>
 #include <fcntl.h>
+#include "sys/epoll.h"
 
 #include <client/RpcClient.hh>
 
 #include <common/RpcServiceProxy.hh>
+#include <transport/ClientConnectionManager.hh>
+#include <runtime/iomodel/reactor/Poller.hh>
+#include <runtime/handlemodel/EventHandlerManager.hh>
+
+RpcClient::RpcClient():
+    ClientConnectionMgr(nullptr),
+    poller(nullptr)
+{
+
+}
 
 RpcClient::~RpcClient()
 {
-    close(connfd);
+    if (ClientConnectionMgr)
+    {
+        delete ClientConnectionMgr;
+        ClientConnectionMgr = nullptr;
+    }
+    if (poller)
+    {
+        delete poller;
+        poller = nullptr;
+    }
 }
 
-void RpcClient::Initialize(const char* ip, int port)
+void RpcClient::Initialize()
 {
-    struct sockaddr_in server_address;
-    bzero(&server_address, sizeof(server_address));
-    server_address.sin_family = AF_INET;
-    inet_pton(AF_INET, ip, &server_address.sin_addr);
-    server_address.sin_port = htons(port);
-
-    int sockfd = socket(PF_INET, SOCK_STREAM, 0);
-    assert(sockfd >= 0);
-
-    if (connect(sockfd, (struct sockaddr*)&server_address, sizeof(server_address)) < 0)
-    {
-        printf("connection failed\n");
-        close(sockfd);
-    }
-    connfd = sockfd;
+    // create event handlers
+    EventHandlerMgr = new EventHandlerManager();
+    // create poller
+    poller = new Poller();
+    // connection
+    ClientConnectionMgr = new ClientConnectionManager(EventHandlerMgr);
 }
 
 int RpcClient::Main(int argc, char* argv[])
@@ -49,13 +60,17 @@ int RpcClient::Main(int argc, char* argv[])
     }
     const char * ip = argv[1];
     int port = atoi(argv[2]);
-    Initialize(ip, port);
+
+    int Connfd = ClientConnectionMgr->Connect(ip, port);
+    // todo: 为connfd添加read和write handler
+    poller->AddEvent(Connfd, EPOLLIN | EPOLLERR | EPOLLRDHUP);
+
     return 0;
 }
 
 void RpcClient::SendRequest(const RpcMessage& Message)
 {
-    send(connfd, &Message, sizeof(RpcMessage), 0);
+    ClientConnectionMgr->Send(Message);
 }
 
 void RpcClient::Bind(RpcServiceProxy* ServiceProxy)

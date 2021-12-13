@@ -2,27 +2,38 @@
 
 #include <common/RpcTypes.hh>
 
+class Poller;
 class RpcServiceProxy;
+class EventHandlerManager;
+class ClientConnectionManager;
 
 class RpcClient
 {
 public:
-    RpcClient() = default;
+    RpcClient();
     ~RpcClient();
     RpcClient(RpcClient&) = delete;
     RpcClient(RpcClient&&) = delete;
-    /** initialize client */
-    void Initialize(const char* ip, int port);
-    /** connect to rpc server */
-    void Connect(const char* ip, int port);
-    /** client start running */
+    /** 
+     * initialize client
+     */
+    void Initialize();
+    /** 
+     * client's main procedure
+     */
     int Main(int argc, char* argv[]);
-    /** client send rpc request */
+    /** 
+     * client send rpc request
+     * Not reentrant now, consider to use task queue in the future
+     */
     void SendRequest(const RpcMessage& Message);
-    /** Bind a proxy to this */
+    /** 
+     * Bind a proxy to this
+     */
     void Bind(RpcServiceProxy* ServiceProxy);
 
 private:
-    
-    int connfd;
+    EventHandlerManager* EventHandlerMgr;
+    Poller* poller;
+    ClientConnectionManager* ClientConnectionMgr;
 };
