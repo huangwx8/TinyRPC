@@ -2,6 +2,8 @@
 
 #include <common/RpcTypes.hh>
 
+class RpcServiceProxy;
+
 class RpcClient
 {
 public:
@@ -15,6 +17,9 @@ public:
     int Main(int argc, char* argv[]);
     /* client send rpc request */
     void SendRequest(const RpcMessage& Message);
+    /* Bind a proxy to this */
+    void Bind(RpcServiceProxy* ServiceProxy);
+
 private:
     int connfd;
 };

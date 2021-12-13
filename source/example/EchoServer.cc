@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
     // 初始化Rpc服务端
     PortalServer.Initialize();
     // 实现绑定到Rpc服务端
-    EchoServer.BindRpcServer(&PortalServer);
+    PortalServer.RegisterService(&EchoServer);
     // 启动Rpc服务端
     PortalServer.Main(argc, argv);
 }

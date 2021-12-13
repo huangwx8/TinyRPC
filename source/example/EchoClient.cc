@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
     RpcClient PortalClient;
 
     // 代理绑定到Rpc客户端
-    EchoClient.BindRpcClient(&PortalClient);
+    PortalClient.Bind(&EchoClient);
     // 启动Rpc客户端
     PortalClient.Main(argc, argv);
     // 发送RPC

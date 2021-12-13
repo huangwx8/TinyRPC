@@ -14,6 +14,8 @@
 
 #include <client/RpcClient.hh>
 
+#include <common/RpcServiceProxy.hh>
+
 RpcClient::~RpcClient()
 {
     close(connfd);
@@ -54,4 +56,9 @@ void RpcClient::Initialize(const char* ip, int port)
 void RpcClient::SendRequest(const RpcMessage& Message)
 {
     send(connfd, &Message, sizeof(RpcMessage), 0);
+}
+
+void RpcClient::Bind(RpcServiceProxy* ServiceProxy)
+{
+    ServiceProxy->RpcPortal = this;
 }
