@@ -1,12 +1,10 @@
 CC=g++
 CFLAGS=-g -std=c++11 -lpthread
-SERVERFLAGS=-DBUILD_SERVER
-CLIENTFLAGS=-DBUILD_CLIENT
 
 INCLUDE=-I${PWD}/include
 SRCDIR=${PWD}/source
 OBJDIR=${PWD}/obj
-OUTDIR=${PWD}/binary
+OUTDIR=${PWD}/bin
 
 COMMONOBJECTS=$(patsubst ${SRCDIR}/common/%.cc,${OBJDIR}/common/%.o,$(wildcard ${SRCDIR}/common/*.cc))
 SERIALIZATIONOBJECTS=$(patsubst ${SRCDIR}/serialization/%.cc,${OBJDIR}/serialization/%.o,$(wildcard ${SRCDIR}/serialization/*.cc))
@@ -17,22 +15,30 @@ CLIENTOBJECTS=$(patsubst ${SRCDIR}/client/%.cc,${OBJDIR}/client/%.o,$(wildcard $
 
 OUTSERVER=${OUTDIR}/EchoServer
 OUTCLIENT=${OUTDIR}/EchoClient
-OUTSERVEROBJECTS=${OBJDIR}/example/EchoServer.o ${COMMONOBJECTS} ${SERIALIZATIONOBJECTS} ${RUNTIMEOBJECTS} ${TRANSPORTOBJECTS} ${CLIENTOBJECTS} ${SERVEROBJECTS}
-OUTCLIENTOBJECTS=${OBJDIR}/example/EchoClient.o ${COMMONOBJECTS} ${SERIALIZATIONOBJECTS} ${RUNTIMEOBJECTS} ${TRANSPORTOBJECTS} ${CLIENTOBJECTS} ${SERVEROBJECTS}
+OUTSERVEROBJECTS=${OBJDIR}/example/EchoServer.o ${COMMONOBJECTS} ${SERIALIZATIONOBJECTS} ${RUNTIMEOBJECTS} ${TRANSPORTOBJECTS} ${SERVEROBJECTS}
+OUTCLIENTOBJECTS=${OBJDIR}/example/EchoClient.o ${COMMONOBJECTS} ${SERIALIZATIONOBJECTS} ${RUNTIMEOBJECTS} ${TRANSPORTOBJECTS} ${CLIENTOBJECTS}
 
-OUT=${OUTSERVER} ${OUTCLIENT}
+server: ${OUTSERVER}
 
-all: ${OUT}
+client: ${OUTCLIENT}
 
 ${OUTSERVER}: ${OUTSERVEROBJECTS}
-	$(CC) -o $@ $^ $(CFLAGS)
+	@echo '****************************************************************'
+	@echo 'linking target file [${OUTSERVER}]...'
+	@$(CC) -o $@ $^ $(CFLAGS)
+	@echo '****************************************************************'
 
 ${OUTCLIENT}: ${OUTCLIENTOBJECTS}
-	$(CC) -o $@ $^ $(CFLAGS)
+	@echo '****************************************************************'
+	@echo 'linking target file [${OUTCLIENT}]...'
+	@$(CC) -o $@ $^ $(CFLAGS)
+	@echo '****************************************************************'
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cc 
-	$(CC) -c $(INCLUDE) -o $@ $< $(CFLAGS)
+	@echo 'compiling c++ file $<'
+	@$(CC) -c $(INCLUDE) -o $@ $< $(CFLAGS) $(BUILDFLAGS)
 
-# clean all .o object files and target binary files
+# clean all .o object files
 clean:
-	rm -f ${OUTSERVEROBJECTS} ${OUTCLIENTOBJECTS} ${OUT}
+	@echo 'clean all object files...'
+	@rm -f ${OUTSERVEROBJECTS} ${OUTCLIENTOBJECTS}
