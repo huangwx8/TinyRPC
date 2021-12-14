@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include <runtime/handlemodel/EventHandler.hh>
 
 class Poller;
@@ -12,7 +14,13 @@ public:
         Poller* InPoller, 
         EventHandlerManager* InEventHandlerMgr,
         EventHandler* InReader
-        );
+    );
+
+    ServerConnectionManager::ServerConnectionManager(
+        std::function<void(int, bool)>,
+        std::function<void(int)>
+    );
+
     virtual ~ServerConnectionManager();
 
     /**
@@ -31,18 +39,12 @@ private:
     /**
      * Accept wrapper
      */
-    void HandleAcceptEvent();
-    /**
-     * Add a new fd
-     */
-    void Add(int Fd);
-    /**
-     * Delete a fd
-     */
-    void Del(int Fd);
+    int Accept();
 
-    Poller* _Poller;
-    EventHandlerManager* EventHandlerMgr;
-    EventHandler* Reader;
+    // Lambda delegate function, to avoid include higher modules (RpcServer)
+    std::function<void(int, bool)> OnPostOpenFd;
+    std::function<void(int)> OnPreCloseFd;
+
+    // Listen file descriptor
     int ListenFd;
 };

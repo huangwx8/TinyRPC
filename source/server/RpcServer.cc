@@ -1,3 +1,9 @@
+// std
+#include <functional>
+
+// linux
+#include <sys/epoll.h>
+
 // inner
 #include <server/RpcServer.hh>
 #include <server/RpcRequestHandler.hh>
@@ -59,10 +65,32 @@ void RpcServer::Initialize()
     EventHandlerMgr = new EventHandlerManager();
     // poller
     poller = new Poller();
+    // connections
+    std::function<void(int, bool)> RegisterEvent = [this](int Fd, bool bIsListen) {
+        // 所有关闭连接的时间由ConnMgr处理
+        EventHandlerMgr->AttachEventHandler(Fd, EventHandler::CLOSE_EVENT, this->ServerConnectionMgr);
+        // 如果是listenfd，则由ConnMgr处理ReadEvent，否则转交对应的请求处理类或响应发送类
+        if (bIsListen)
+        {
+            EventHandlerMgr->AttachEventHandler(Fd, EventHandler::READ_EVENT, this->ServerConnectionMgr);
+        }
+        else 
+        {
+            EventHandlerMgr->AttachEventHandler(Fd, EventHandler::READ_EVENT, RequestHandler);
+            // EventHandlerMgr->AttachEventHandler(Fd, EventHandler::Write_EVENT, ResultSender);
+        }
+        poller->AddEvent(Fd, EPOLLIN | EPOLLERR | EPOLLRDHUP);
+    };
+    std::function<void(int)> UnregisterEvent = [this](int Fd) {
+        EventHandlerMgr->DetachEventHandler(Fd, static_cast<EventHandler::EventType>(
+            EventHandler::READ_EVENT | EventHandler::WRITE_EVENT | EventHandler::CLOSE_EVENT
+            )
+        );
+        poller->DelEvent(Fd, 0);
+    };
+    ServerConnectionMgr = new ServerConnectionManager(poller, EventHandlerMgr, RequestHandler);
     // reactor
     reactor = new Reactor(poller, dynamic_cast<EventHandler*>(EventHandlerMgr));
-    // connections
-    ServerConnectionMgr = new ServerConnectionManager(poller, EventHandlerMgr, RequestHandler);
 }
 
 void RpcServer::RegisterService(RpcServiceProxy* Service)
