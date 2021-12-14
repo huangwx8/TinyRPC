@@ -31,10 +31,7 @@ static int ConnectTo(const char* ip, int port)
     return sockfd;
 }
 
-ClientConnectionManager::ClientConnectionManager(
-    EventHandlerManager* InEventHandlerMgr
-):
-    EventHandlerMgr(InEventHandlerMgr),
+ClientConnectionManager::ClientConnectionManager():
     Connfd(-1)
 {
    
@@ -53,12 +50,7 @@ void ClientConnectionManager::HandleCloseEvent(int Fd)
 int ClientConnectionManager::Connect(const char* ip, int port)
 {
     Connfd = ConnectTo(ip, port);
-    if (Connfd >= 0)
-    {
-        // 由this处理CLOSE事件
-        EventHandlerMgr->AttachEventHandler(Connfd, EventHandler::CLOSE_EVENT, this);
-    }
-    else 
+    if (Connfd < 0)
     {
         throw "Connect failed";
     }

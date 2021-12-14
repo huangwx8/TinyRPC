@@ -7,6 +7,27 @@ class RpcServiceProxy;
 class EventHandlerManager;
 class ClientConnectionManager;
 
+/**
+ * 中转站
+ */
+class EventHandlerRouter: public EventHandler 
+{
+public:
+    EventHandlerRouter():
+        Readhdr(nullptr),
+        Writehdr(nullptr),
+        Closehdr(nullptr)
+    {}
+
+    virtual ~EventHandlerRouter() {}
+
+    virtual void HandleEvent(int Fd, EventType Type) override;
+
+    EventHandler* Readhdr;
+    EventHandler* Writehdr;
+    EventHandler* Closehdr;
+};
+
 class RpcClient
 {
 public:
@@ -33,7 +54,7 @@ public:
     void Bind(RpcServiceProxy* ServiceProxy);
 
 private:
-    EventHandlerManager* EventHandlerMgr;
+    EventHandlerRouter* router;
     Poller* poller;
     ClientConnectionManager* ClientConnectionMgr;
 };

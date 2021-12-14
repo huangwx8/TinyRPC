@@ -20,35 +20,60 @@
 #include <runtime/iomodel/reactor/Poller.hh>
 #include <runtime/handlemodel/EventHandlerManager.hh>
 
+
+void EventHandlerRouter::HandleEvent(int Fd, EventType Type)
+{
+    switch (Type)
+    {
+    case CLOSE_EVENT:
+        Closehdr->HandleCloseEvent(Fd);
+        break;
+    case READ_EVENT:
+        Readhdr->HandleReadEvent(Fd);
+        break;
+    case WRITE_EVENT:
+        Writehdr->HandleWriteEvent(Fd);
+        break;
+    default:
+        break;
+    }
+}
+
 RpcClient::RpcClient():
-    ClientConnectionMgr(nullptr),
-    poller(nullptr)
+    router(nullptr),
+    poller(nullptr),
+    ClientConnectionMgr(nullptr)
 {
 
 }
 
 RpcClient::~RpcClient()
 {
-    if (ClientConnectionMgr)
+    if (router)
     {
-        delete ClientConnectionMgr;
-        ClientConnectionMgr = nullptr;
+        delete router;
+        router = nullptr;
     }
     if (poller)
     {
         delete poller;
         poller = nullptr;
     }
+    if (ClientConnectionMgr)
+    {
+        delete ClientConnectionMgr;
+        ClientConnectionMgr = nullptr;
+    }
 }
 
 void RpcClient::Initialize()
 {
-    // create event handlers
-    EventHandlerMgr = new EventHandlerManager();
     // create poller
     poller = new Poller();
     // connection
-    ClientConnectionMgr = new ClientConnectionManager(EventHandlerMgr);
+    ClientConnectionMgr = new ClientConnectionManager();
+    // create event handlers
+    router = new EventHandlerRouter(nullptr, nullptr, nullptr);
 }
 
 int RpcClient::Main(int argc, char* argv[])
@@ -61,8 +86,17 @@ int RpcClient::Main(int argc, char* argv[])
     const char * ip = argv[1];
     int port = atoi(argv[2]);
 
+    // CltConnMgr建立与服务器的连接
     int Connfd = ClientConnectionMgr->Connect(ip, port);
-    // todo: 为connfd添加read和write handler
+
+    // 由CltConnMgr处理CLOSE事件
+    router->Closehdr = ClientConnectionMgr;
+    // 由CallbacksHdr处理READ事件
+    // router->Readhdr = CallbacksHandler;
+    // 由RequstSdr处理WRITE事件
+    // router->Writehdr = RpcRequestSender;
+
+    // 监听所有事件
     poller->AddEvent(Connfd, EPOLLIN | EPOLLERR | EPOLLRDHUP);
 
     return 0;

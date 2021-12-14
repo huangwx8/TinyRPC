@@ -3,15 +3,11 @@
 #include <runtime/handlemodel/EventHandler.hh>
 #include <common/RpcTypes.hh>
 
-class Poller;
-class EventHandlerManager;
 
 class ClientConnectionManager: public EventHandler
 {
 public:
-    ClientConnectionManager(
-        EventHandlerManager* InEventHandlerMgr
-        );
+    ClientConnectionManager();
     virtual ~ClientConnectionManager();
 
     /**
@@ -27,6 +23,5 @@ public:
      */
     void Send(const RpcMessage& Message);
 private:
-    EventHandlerManager* EventHandlerMgr;
     int Connfd;
 };
