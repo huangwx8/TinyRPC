@@ -21,6 +21,27 @@
 #include <runtime/handlemodel/EventHandlerManager.hh>
 
 
+/**
+ * 中转站
+ */
+class EventHandlerRouter: public EventHandler 
+{
+public:
+    EventHandlerRouter():
+        Readhdr(nullptr),
+        Writehdr(nullptr),
+        Closehdr(nullptr)
+    {}
+
+    virtual ~EventHandlerRouter() {}
+
+    virtual void HandleEvent(int Fd, EventType Type) override;
+
+    EventHandler* Readhdr;
+    EventHandler* Writehdr;
+    EventHandler* Closehdr;
+};
+
 void EventHandlerRouter::HandleEvent(int Fd, EventType Type)
 {
     switch (Type)
@@ -73,7 +94,7 @@ void RpcClient::Initialize()
     // connection
     ClientConnectionMgr = new ClientConnectionManager();
     // create event handlers
-    router = new EventHandlerRouter(nullptr, nullptr, nullptr);
+    router = new EventHandlerRouter();
 }
 
 int RpcClient::Main(int argc, char* argv[])
