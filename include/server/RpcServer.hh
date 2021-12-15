@@ -6,6 +6,7 @@ class ThreadPool;
 class EventHandlerManager;
 class ServerConnectionManager;
 class RpcRequestHandler;
+class RpcResultSender;
 class Reactor;
 
 class RpcServer
@@ -31,6 +32,7 @@ public:
 
 private:
     RpcRequestHandler* RequestHandler;
+    RpcResultSender* ResultSender;
     EventHandlerManager* EventHandlerMgr;
     Poller* poller;
     Reactor* reactor;

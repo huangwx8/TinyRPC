@@ -3,6 +3,7 @@
 // std
 #include <string>
 #include <unordered_map>
+#include <functional>
 
 // inner
 #include <runtime/handlemodel/EventHandler.hh>
@@ -12,7 +13,7 @@ class RpcServiceProxy;
 class RpcRequestHandler: public EventHandler
 {
 public:
-    RpcRequestHandler() = default;
+    RpcRequestHandler(std::function<void(int, int)>);
     virtual ~RpcRequestHandler() = default;
     /**
      * If one EPOLLIN triggered at a connfd, try find the matching rpc implematation to process
@@ -25,4 +26,6 @@ public:
 private:
     // Name-Service Mapping
     std::unordered_map<std::string, RpcServiceProxy*> RpcServiceDict;
+
+    std::function<void(int, int)> OnFinishTask;
 };

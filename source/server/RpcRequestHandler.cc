@@ -12,10 +12,17 @@
 #include <common/RpcServiceProxy.hh>
 
 
+RpcRequestHandler::RpcRequestHandler(std::function<void(int, int)> PostHandleRequest):
+    OnFinishTask(PostHandleRequest)
+{
+    
+}
+
 void RpcRequestHandler::HandleReadEvent(int Fd)
 {
     int Connfd = Fd;
     RpcMessage Message;
+    int TaskRetVal = -1;
     // bzero receive buffer and receive
     bzero(&Message, sizeof(RpcMessage));
     int ret = recv(Connfd, &Message, sizeof(RpcMessage), 0);
@@ -41,12 +48,14 @@ void RpcRequestHandler::HandleReadEvent(int Fd)
         {
             RpcServiceProxy* Service = RpcServiceDict[RpcName];
             Service->Handle(Message);
+            TaskRetVal = 1;
         }
         else
         {
             printf("RpcRequestHandler::HandleReadEvent: Warning! Service [%s] not found\n", Message.RpcName);
         }
     }
+    OnFinishTask(Fd, TaskRetVal);
 }
 
 void RpcRequestHandler::AddProxy(RpcServiceProxy* Service)

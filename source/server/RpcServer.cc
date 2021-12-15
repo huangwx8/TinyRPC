@@ -7,6 +7,7 @@
 // inner
 #include <server/RpcServer.hh>
 #include <server/RpcRequestHandler.hh>
+#include <server/RpcResultSender.hh>
 
 #include <common/RpcServiceProxy.hh>
 
@@ -21,6 +22,7 @@
 
 RpcServer::RpcServer():
     RequestHandler(nullptr),
+    ResultSender(nullptr),
     EventHandlerMgr(nullptr),
     poller(nullptr),
     reactor(nullptr),
@@ -35,6 +37,11 @@ RpcServer::~RpcServer()
     {
         delete RequestHandler;
         RequestHandler = nullptr;
+    }
+    if (ResultSender)
+    {
+        delete ResultSender;
+        ResultSender = nullptr;
     }
     if (EventHandlerMgr)
     {
@@ -61,7 +68,18 @@ RpcServer::~RpcServer()
 void RpcServer::Initialize()
 {
     // create event handlers
-    RequestHandler = new RpcRequestHandler();
+    std::function<void(int, int)> PostHandleRequest = [this](int Fd, int RetVal) {
+        // 注册返回值列表
+        printf("Task finish, return value is %d\n", RetVal);
+        // 允许触发EPOLLOUT事件
+        poller->ModEvent(Fd, EPOLLOUT | EPOLLERR | EPOLLRDHUP | EPOLLONESHOT);
+    };
+    RequestHandler = new RpcRequestHandler(PostHandleRequest);
+    std::function<void(int)> PostSendResult = [this](int Fd) {
+        // 允许触发EPOLLIN事件
+        poller->ModEvent(Fd, EPOLLIN | EPOLLERR | EPOLLRDHUP | EPOLLONESHOT);
+    };
+    ResultSender = new RpcResultSender();
     EventHandlerMgr = new EventHandlerManager();
     // poller
     poller = new Poller();
@@ -73,13 +91,14 @@ void RpcServer::Initialize()
         if (bIsListen)
         {
             EventHandlerMgr->AttachEventHandler(Fd, EventHandler::READ_EVENT, this->ServerConnectionMgr);
+            poller->AddEvent(Fd, EPOLLIN | EPOLLERR | EPOLLRDHUP);
         }
         else 
         {
             EventHandlerMgr->AttachEventHandler(Fd, EventHandler::READ_EVENT, RequestHandler);
-            // EventHandlerMgr->AttachEventHandler(Fd, EventHandler::Write_EVENT, ResultSender);
+            EventHandlerMgr->AttachEventHandler(Fd, EventHandler::WRITE_EVENT, ResultSender);
+            poller->AddEvent(Fd, EPOLLIN | EPOLLERR | EPOLLRDHUP | EPOLLONESHOT);
         }
-        poller->AddEvent(Fd, EPOLLIN | EPOLLERR | EPOLLRDHUP);
     };
     std::function<void(int)> UnregisterEvent = [this](int Fd) {
         EventHandlerMgr->DetachEventHandler(Fd, static_cast<EventHandler::EventType>(
