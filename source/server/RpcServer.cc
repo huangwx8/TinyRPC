@@ -88,7 +88,7 @@ void RpcServer::Initialize()
         );
         poller->DelEvent(Fd, 0);
     };
-    ServerConnectionMgr = new ServerConnectionManager(poller, EventHandlerMgr, RequestHandler);
+    ServerConnectionMgr = new ServerConnectionManager(RegisterEvent, UnregisterEvent);
     // reactor
     reactor = new Reactor(poller, dynamic_cast<EventHandler*>(EventHandlerMgr));
 }

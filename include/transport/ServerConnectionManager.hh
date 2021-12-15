@@ -10,12 +10,6 @@ class EventHandlerManager;
 class ServerConnectionManager: public EventHandler
 {
 public:
-    ServerConnectionManager(
-        Poller* InPoller, 
-        EventHandlerManager* InEventHandlerMgr,
-        EventHandler* InReader
-    );
-
     ServerConnectionManager::ServerConnectionManager(
         std::function<void(int, bool)>,
         std::function<void(int)>
