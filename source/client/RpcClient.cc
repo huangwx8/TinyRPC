@@ -19,6 +19,7 @@
 #include <transport/ClientConnectionManager.hh>
 #include <runtime/iomodel/reactor/Poller.hh>
 #include <runtime/handlemodel/EventHandlerManager.hh>
+#include <client/CallbacksHandler.hh>
 
 
 /**
@@ -63,7 +64,9 @@ void EventHandlerRouter::HandleEvent(int Fd, EventType Type)
 RpcClient::RpcClient():
     router(nullptr),
     poller(nullptr),
-    ClientConnectionMgr(nullptr)
+    ClientConnectionMgr(nullptr),
+    CallbacksHdr(nullptr),
+    m_stop(false)
 {
 
 }
@@ -85,6 +88,11 @@ RpcClient::~RpcClient()
         delete ClientConnectionMgr;
         ClientConnectionMgr = nullptr;
     }
+    if (CallbacksHdr)
+    {
+        delete CallbacksHdr;
+        CallbacksHdr = nullptr;
+    }
 }
 
 void RpcClient::Initialize()
@@ -95,6 +103,7 @@ void RpcClient::Initialize()
     ClientConnectionMgr = new ClientConnectionManager();
     // create event handlers
     router = new EventHandlerRouter();
+    CallbacksHdr = new CallbacksHandler();
 }
 
 int RpcClient::Main(int argc, char* argv[])
@@ -113,12 +122,22 @@ int RpcClient::Main(int argc, char* argv[])
     // 由CltConnMgr处理CLOSE事件
     router->Closehdr = ClientConnectionMgr;
     // 由CallbacksHdr处理READ事件
-    // router->Readhdr = CallbacksHandler;
+    router->Readhdr = CallbacksHdr;;
     // 由RequstSdr处理WRITE事件
     // router->Writehdr = RpcRequestSender;
-
     // 监听所有事件
     poller->AddEvent(Connfd, EPOLLIN | EPOLLERR | EPOLLRDHUP);
+
+    while (!m_stop)
+    {
+        // wait, but not block, or this loop may dead
+        auto&& tasks = poller->Dispatch(1, *router);
+        // process
+        for (auto&& task : tasks)
+        {
+            task();
+        }
+    }
 
     return 0;
 }

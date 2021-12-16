@@ -77,6 +77,7 @@ void ServerConnectionManager::HandleReadEvent(int Fd)
 
 void ServerConnectionManager::HandleCloseEvent(int Fd)
 {
+    printf("ServerConnectionManager::HandleCloseEvent Close fd [%d]\n", Fd);
     OnPreCloseFd(Fd);
     close(Fd);
 }

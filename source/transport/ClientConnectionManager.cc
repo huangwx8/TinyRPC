@@ -59,5 +59,6 @@ int ClientConnectionManager::Connect(const char* ip, int port)
 
 void ClientConnectionManager::Send(const RpcMessage& Message)
 {
-    send(Connfd, &Message, sizeof(RpcMessage), 0);
+    int ret = send(Connfd, &Message, sizeof(RpcMessage), 0);
+    printf("%d\n",ret);
 }
