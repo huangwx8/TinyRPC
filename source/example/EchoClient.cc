@@ -9,7 +9,7 @@
 
 void EchoServiceProxy::Echo(const char* Message, float FloatNum, int IntegerNum)
 {
-    CLIENT_CALL_RPC_ThreeParams(string, Message, float, FloatNum, int, IntegerNum);
+    CLIENT_CALL_RPC_ThreeParams(Message, FloatNum, IntegerNum);
 }
 
 int main(int argc, char* argv[])
@@ -19,6 +19,8 @@ int main(int argc, char* argv[])
 
     // 代理绑定到Rpc客户端
     PortalClient.Bind(&EchoClient);
+    // 初始化Rpc客户端
+    PortalClient.Initialize();
     // 启动Rpc客户端
     PortalClient.Main(argc, argv);
     // 发送RPC

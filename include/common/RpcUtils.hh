@@ -3,6 +3,8 @@
 #include <common/RpcTypes.hh>
 #include <serialization/Serializer.hh>
 
+#include <stdio.h>
+
 using string = char[512];
 
 void ParseParam(const char* In);
@@ -17,11 +19,47 @@ void ParseParam(const char* In, const char* Type, void* Out, ArgumentTypes... Ar
 void PackParam(char* Out);
 
 template<typename... ArgumentTypes>
-void PackParam(char* Out, const char* Type, const void* In, ArgumentTypes... Arguments)
+void PackParam(char* Out, const int& In, ArgumentTypes... Arguments)
 {
-    int Offset = Serializer::Serialize(In, Out, Type);
+    int Offset = Serializer::Serialize(&In, Out, "int");
     PackParam(Out + Offset, Arguments...);
 }
+
+template<typename... ArgumentTypes>
+void PackParam(char* Out, int& In, ArgumentTypes... Arguments)
+{
+    int Offset = Serializer::Serialize(&In, Out, "int");
+    PackParam(Out + Offset, Arguments...);
+}
+
+template<typename... ArgumentTypes>
+void PackParam(char* Out, const float& In, ArgumentTypes... Arguments)
+{
+    int Offset = Serializer::Serialize(&In, Out, "float");
+    PackParam(Out + Offset, Arguments...);
+}
+
+template<typename... ArgumentTypes>
+void PackParam(char* Out, float& In, ArgumentTypes... Arguments)
+{
+    int Offset = Serializer::Serialize(&In, Out, "float");
+    PackParam(Out + Offset, Arguments...);
+}
+
+template<typename... ArgumentTypes>
+void PackParam(char* Out, char*& In, ArgumentTypes... Arguments)
+{
+    int Offset = Serializer::Serialize(In, Out, "string");
+    PackParam(Out + Offset, Arguments...);
+}
+
+template<typename... ArgumentTypes>
+void PackParam(char* Out, const char*& In, ArgumentTypes... Arguments)
+{
+    int Offset = Serializer::Serialize(In, Out, "string");
+    PackParam(Out + Offset, Arguments...);
+}
+
 
 #define INIT_RPCMESSAGE()\
 RpcMessage __RpcMessage;\
@@ -34,24 +72,24 @@ strcpy(__RpcMessage.RpcName, GetServiceName());
     Invoke(__RpcMessage);\
 }
 
-#define CLIENT_CALL_RPC_OneParam(T1, P1)\
+#define CLIENT_CALL_RPC_OneParam(P1)\
 {\
     INIT_RPCMESSAGE()\
-    PackParam(&(__RpcMessage.RpcParameters[0]), #T1, &P1);\
+    PackParam(&(__RpcMessage.RpcParameters[0]), P1);\
     Invoke(__RpcMessage);\
 }
 
-#define CLIENT_CALL_RPC_TwoParams(T1, P1, T2, P2)\
+#define CLIENT_CALL_RPC_TwoParams(P1, P2)\
 {\
     INIT_RPCMESSAGE()\
-    PackParam(&(__RpcMessage.RpcParameters[0]), #T1, &P1, #T2, &P2);\
+    PackParam(&(__RpcMessage.RpcParameters[0]), P1, P2);\
     Invoke(__RpcMessage);\
 }
 
-#define CLIENT_CALL_RPC_ThreeParams(T1, P1, T2, P2, T3, P3)\
+#define CLIENT_CALL_RPC_ThreeParams(P1, P2, P3)\
 {\
     INIT_RPCMESSAGE()\
-    PackParam(&(__RpcMessage.RpcParameters[0]), #T1, &P1, #T2, &P2, #T3, &P3);\
+    PackParam(&(__RpcMessage.RpcParameters[0]), P1, P2, P3);\
     Invoke(__RpcMessage);\
 }
 

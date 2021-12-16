@@ -79,7 +79,7 @@ void RpcServer::Initialize()
     RequestHandler = new RpcRequestHandler(PostHandleRequest);
     // out handler
     std::function<std::pair<int,int>(int)> GetResultPair = [this](int Fd) -> std::pair<int,int> {
-        assert(!RpcResults.empty());
+        assert(!RpcResults[Fd].empty());
         // 从Fd对应的等待队列中拿一个元素
         auto&& pack = RpcResults[Fd].front();
         RpcResults[Fd].pop();
@@ -87,7 +87,7 @@ void RpcServer::Initialize()
     };
     std::function<void(int)> PostSendResult = [this](int Fd) {
         // 如果等待队列为空，禁止触发EPOLLOUT事件
-        if (1)
+        if (RpcResults[Fd].empty())
         {
             poller->ModEvent(Fd, EPOLLIN | EPOLLERR | EPOLLRDHUP | EPOLLONESHOT);
         }
