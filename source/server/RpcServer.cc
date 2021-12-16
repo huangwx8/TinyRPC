@@ -68,21 +68,29 @@ RpcServer::~RpcServer()
 void RpcServer::Initialize()
 {
     // create event handlers
+    // in handler
     std::function<void(int, int)> PostHandleRequest = [this](int Fd, int RetVal) {
         // 注册返回值列表
         printf("Task finish, return value is %d\n", RetVal);
-        // 允许触发EPOLLOUT事件
-        poller->ModEvent(Fd, EPOLLOUT | EPOLLERR | EPOLLRDHUP | EPOLLONESHOT);
+        // 允许触发EPOLLIN和EPOLLOUT事件
+        poller->ModEvent(Fd, EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLRDHUP | EPOLLONESHOT);
     };
+    // out handler
     RequestHandler = new RpcRequestHandler(PostHandleRequest);
     std::function<void(int)> PostSendResult = [this](int Fd) {
-        // 允许触发EPOLLIN事件
-        poller->ModEvent(Fd, EPOLLIN | EPOLLERR | EPOLLRDHUP | EPOLLONESHOT);
+        // 如果等待队列为空，禁止触发EPOLLOUT事件
+        if (1)
+        {
+            poller->ModEvent(Fd, EPOLLIN | EPOLLERR | EPOLLRDHUP | EPOLLONESHOT);
+        }
     };
-    ResultSender = new RpcResultSender();
+    ResultSender = new RpcResultSender(PostSendResult);
+    // main handler
     EventHandlerMgr = new EventHandlerManager();
-    // poller
+
+    // io multiplexing poller
     poller = new Poller();
+
     // connections
     std::function<void(int, bool)> RegisterEvent = [this](int Fd, bool bIsListen) {
         // 所有关闭连接的时间由ConnMgr处理
@@ -108,7 +116,8 @@ void RpcServer::Initialize()
         poller->DelEvent(Fd, 0);
     };
     ServerConnectionMgr = new ServerConnectionManager(RegisterEvent, UnregisterEvent);
-    // reactor
+
+    // reactor event handle model, is the procedure of main thread
     reactor = new Reactor(poller, dynamic_cast<EventHandler*>(EventHandlerMgr));
 }
 
@@ -119,7 +128,9 @@ void RpcServer::RegisterService(RpcServiceProxy* Service)
 
 int RpcServer::Main(int argc, char* argv[])
 {
+    // Listen to clients' connect()
     ServerConnectionMgr->Listen();
+    // poller select several events, deliver them to main handler, and then repeat
     reactor->Run();
     return 0;
 }
