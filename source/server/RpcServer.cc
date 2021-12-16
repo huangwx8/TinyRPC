@@ -1,5 +1,6 @@
 // std
 #include <functional>
+#include <assert.h>
 
 // linux
 #include <sys/epoll.h>
@@ -71,12 +72,19 @@ void RpcServer::Initialize()
     // in handler
     std::function<void(int, int)> PostHandleRequest = [this](int Fd, int RetVal) {
         // 注册返回值列表
-        printf("Task finish, return value is %d\n", RetVal);
+        RpcResults[Fd].push(std::make_pair(0, RetVal));
         // 允许触发EPOLLIN和EPOLLOUT事件
         poller->ModEvent(Fd, EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLRDHUP | EPOLLONESHOT);
     };
-    // out handler
     RequestHandler = new RpcRequestHandler(PostHandleRequest);
+    // out handler
+    std::function<std::pair<int,int>(int)> GetResultPair = [this](int Fd) -> std::pair<int,int> {
+        assert(!RpcResults.empty());
+        // 从Fd对应的等待队列中拿一个元素
+        auto&& pack = RpcResults[Fd].front();
+        RpcResults[Fd].pop();
+        return pack;
+    };
     std::function<void(int)> PostSendResult = [this](int Fd) {
         // 如果等待队列为空，禁止触发EPOLLOUT事件
         if (1)
@@ -84,7 +92,7 @@ void RpcServer::Initialize()
             poller->ModEvent(Fd, EPOLLIN | EPOLLERR | EPOLLRDHUP | EPOLLONESHOT);
         }
     };
-    ResultSender = new RpcResultSender(PostSendResult);
+    ResultSender = new RpcResultSender(GetResultPair, PostSendResult);
     // main handler
     EventHandlerMgr = new EventHandlerManager();
 

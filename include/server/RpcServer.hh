@@ -1,5 +1,10 @@
 #pragma once
 
+#include <queue>
+#include <array>
+
+#include <common/Defines.hh>
+
 class RpcServiceProxy;
 class Poller;
 class ThreadPool;
@@ -31,10 +36,14 @@ public:
     int Main(int argc, char* argv[]);
 
 private:
+    // workers
     RpcRequestHandler* RequestHandler;
     RpcResultSender* ResultSender;
     EventHandlerManager* EventHandlerMgr;
     Poller* poller;
     Reactor* reactor;
     ServerConnectionManager* ServerConnectionMgr;
+
+    // container
+    std::array<std::queue<std::pair<int,int>>, MAX_FILE_DESCRIPTORS> RpcResults;
 };

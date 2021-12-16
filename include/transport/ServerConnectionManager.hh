@@ -10,7 +10,7 @@ class EventHandlerManager;
 class ServerConnectionManager: public EventHandler
 {
 public:
-    ServerConnectionManager::ServerConnectionManager(
+    ServerConnectionManager(
         std::function<void(int, bool)>,
         std::function<void(int)>
     );

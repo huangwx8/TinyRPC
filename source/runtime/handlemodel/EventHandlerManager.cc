@@ -2,8 +2,8 @@
 #include <algorithm>
 
 #include <runtime/handlemodel/EventHandlerManager.hh>
+#include <common/Defines.hh>
 
-#define MAX_FILE_DESCRIPTORS 65536
 #define MAX_EVENT_HANDLERS (MAX_FILE_DESCRIPTORS << 2)
 
 

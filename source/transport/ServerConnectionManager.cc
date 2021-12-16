@@ -90,7 +90,7 @@ int ServerConnectionManager::Accept()
     if (Connfd < 0)
     {
         printf("ServerConnectionManager::Accept: Accept failure, errno is %d\n", errno);
-        return;
+        return -1;
     }
     printf("ServerConnectionManager::Accept: Create a connection at fd [%d]\n", Connfd);
     return Connfd;
