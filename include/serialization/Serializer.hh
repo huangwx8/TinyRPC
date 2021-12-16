@@ -5,6 +5,6 @@
 class Serializer
 {
 public:
-    static int Serialize(DataType InType, const void* In ,char* OutBuffer);
-    static int Deserialize(const char* InBuffer, DataType OutType, void* Out);
+    static int Serialize(const void* In ,char* Out, const char* InType);
+    static int Deserialize(const char* In, void* Out, const char* OutType);
 };

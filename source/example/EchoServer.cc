@@ -9,8 +9,7 @@
 
 void EchoServiceImpl::Handle(const RpcMessage& Context)
 {
-    using FBuffer = char[512];
-    SERVER_EXEC_RPC_ThreeParams(Echo, FBuffer, DataType::String, float, DataType::Float, int, DataType::Int);
+    SERVER_EXEC_RPC_ThreeParams(Echo, string, float, int);
 }
 
 void EchoServiceImpl::Echo(const char* Message, float FloatNum, int IntegerNum)

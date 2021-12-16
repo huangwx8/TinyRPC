@@ -1,42 +1,42 @@
 #include <cstring>
 #include <serialization/Serializer.hh>
 
-int Serializer::Serialize(DataType InType, const void* In ,char* OutBuffer)
+int Serializer::Serialize(const void* In ,char* Out, const char* InType)
 {
-    if (InType == DataType::Int)
+    if (strcmp(InType, INT_TYPE) == 0)
     {
-        memcpy(OutBuffer, In, sizeof(int));
+        memcpy(Out, In, sizeof(int));
         return sizeof(int);
     }
-    else if (InType == DataType::Float)
+    else if (strcmp(InType, FLOAT_TYPE) == 0)
     {
-        memcpy(OutBuffer, In, sizeof(float));
+        memcpy(Out, In, sizeof(float));
         return sizeof(float);
     }
-    else if (InType == DataType::String)
+    else if (strcmp(InType, STRING_TYPE) == 0)
     {
-        strcpy(OutBuffer, static_cast<const char*>(In));
+        strcpy(Out, static_cast<const char*>(In));
         return strlen(static_cast<const char*>(In)) + 1;
     }
     return -1;
 }
 
-int Serializer::Deserialize(const char* InBuffer, DataType OutType, void* Out)
+int Serializer::Deserialize(const char* In, void* Out, const char* OutType)
 {
-    if (OutType == DataType::Int)
+    if (strcmp(OutType, INT_TYPE) == 0)
     {
-        memcpy(Out, InBuffer, sizeof(int));
+        memcpy(Out, In, sizeof(int));
         return sizeof(int);
     }
-    else if (OutType == DataType::Float)
+    else if (strcmp(OutType, FLOAT_TYPE) == 0)
     {
-        memcpy(Out, InBuffer, sizeof(float));
+        memcpy(Out, In, sizeof(float));
         return sizeof(float);
     }
-    else if (OutType == DataType::String)
+    else if (strcmp(OutType, STRING_TYPE) == 0)
     {
-        strcpy(static_cast<char*>(Out), InBuffer);
-        return strlen(static_cast<const char*>(InBuffer)) + 1;
+        strcpy(static_cast<char*>(Out), In);
+        return strlen(static_cast<const char*>(In)) + 1;
     }
     return -1;
 }

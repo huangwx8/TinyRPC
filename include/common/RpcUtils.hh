@@ -3,21 +3,23 @@
 #include <common/RpcTypes.hh>
 #include <serialization/Serializer.hh>
 
+using string = char[512];
+
 void ParseParam(const char* In);
 
 template<typename... ArgumentTypes>
-void ParseParam(const char* In, DataType Type, void* Out, ArgumentTypes... Arguments)
+void ParseParam(const char* In, const char* Type, void* Out, ArgumentTypes... Arguments)
 {
-    int Offset = Serializer::Deserialize(In, Type, Out);
+    int Offset = Serializer::Deserialize(In, Out, Type);
     ParseParam(In + Offset, Arguments...);
 }
 
 void PackParam(char* Out);
 
 template<typename... ArgumentTypes>
-void PackParam(char* Out, DataType Type, const void* In, ArgumentTypes... Arguments)
+void PackParam(char* Out, const char* Type, const void* In, ArgumentTypes... Arguments)
 {
-    int Offset = Serializer::Serialize(Type, In, Out);
+    int Offset = Serializer::Serialize(In, Out, Type);
     PackParam(Out + Offset, Arguments...);
 }
 
@@ -32,24 +34,24 @@ strcpy(__RpcMessage.RpcName, GetServiceName());
     Invoke(__RpcMessage);\
 }
 
-#define CLIENT_CALL_RPC_OneParam(RPCT1, P1)\
+#define CLIENT_CALL_RPC_OneParam(T1, P1)\
 {\
     INIT_RPCMESSAGE()\
-    PackParam(&(__RpcMessage.RpcParameters[0]), RPCT1, P1);\
+    PackParam(&(__RpcMessage.RpcParameters[0]), #T1, &P1);\
     Invoke(__RpcMessage);\
 }
 
-#define CLIENT_CALL_RPC_TwoParams(RPCT1, P1, RPCT2, P2)\
+#define CLIENT_CALL_RPC_TwoParams(T1, P1, T2, P2)\
 {\
     INIT_RPCMESSAGE()\
-    PackParam(&(__RpcMessage.RpcParameters[0]), RPCT1, P1, RPCT2, P2);\
+    PackParam(&(__RpcMessage.RpcParameters[0]), #T1, &P1, #T2, &P2);\
     Invoke(__RpcMessage);\
 }
 
-#define CLIENT_CALL_RPC_ThreeParams(RPCT1, P1, RPCT2, P2, RPCT3, P3)\
+#define CLIENT_CALL_RPC_ThreeParams(T1, P1, T2, P2, T3, P3)\
 {\
     INIT_RPCMESSAGE()\
-    PackParam(&(__RpcMessage.RpcParameters[0]), RPCT1, P1, RPCT2, P2, RPCT3, P3);\
+    PackParam(&(__RpcMessage.RpcParameters[0]), #T1, &P1, #T2, &P2, #T3, &P3);\
     Invoke(__RpcMessage);\
 }
 
@@ -58,26 +60,26 @@ strcpy(__RpcMessage.RpcName, GetServiceName());
     RpcImpl();\
 }
 
-#define SERVER_EXEC_RPC_OneParam(RpcImpl, T1, RPCT1)\
+#define SERVER_EXEC_RPC_OneParam(RpcImpl, T1)\
 {\
     T1 Arg1;\
-    ParseParam(&(Context.RpcParameters[0]), RPCT1, &Arg1);\
+    ParseParam(&(Context.RpcParameters[0]), #T1, &Arg1);\
     RpcImpl(Arg1);\
 }
 
-#define SERVER_EXEC_RPC_TwoParams(RpcImpl, T1, RPCT1, T2, RPCT2)\
+#define SERVER_EXEC_RPC_TwoParams(RpcImpl, T1, T2)\
 {\
     T1 Arg1;\
     T2 Arg2;\
-    ParseParam(&(Context.RpcParameters[0]), RPCT1, &Arg1, RPCT2, &Arg2);\
+    ParseParam(&(Context.RpcParameters[0]), #T1, &Arg1, #T2, &Arg2);\
     RpcImpl(Arg1, Arg2);\
 }
 
-#define SERVER_EXEC_RPC_ThreeParams(RpcImpl, T1, RPCT1, T2, RPCT2, T3, RPCT3)\
+#define SERVER_EXEC_RPC_ThreeParams(RpcImpl, T1, T2, T3)\
 {\
     T1 Arg1;\
     T2 Arg2;\
     T3 Arg3;\
-    ParseParam(&(Context.RpcParameters[0]), RPCT1, &Arg1, RPCT2, &Arg2, RPCT3, &Arg3);\
+    ParseParam(&(Context.RpcParameters[0]), #T1, &Arg1, #T2, &Arg2, #T3, &Arg3);\
     RpcImpl(Arg1, Arg2, Arg3);\
 }

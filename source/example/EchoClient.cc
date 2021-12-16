@@ -9,7 +9,7 @@
 
 void EchoServiceProxy::Echo(const char* Message, float FloatNum, int IntegerNum)
 {
-    CLIENT_CALL_RPC_ThreeParams(DataType::String, Message, DataType::Float, &FloatNum, DataType::Int, &IntegerNum);
+    CLIENT_CALL_RPC_ThreeParams(string, Message, float, FloatNum, int, IntegerNum);
 }
 
 int main(int argc, char* argv[])

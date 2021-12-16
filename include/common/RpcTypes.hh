@@ -3,12 +3,9 @@
 #define MAX_RPC_NAME_SIZE 32
 #define MAX_RPC_PARAMS_SIZE 480
 
-enum class DataType
-{
-    Int, 
-    Float, 
-    String
-};
+#define INT_TYPE "int"
+#define FLOAT_TYPE "float"
+#define STRING_TYPE "string"
 
 struct RpcMessage
 {
