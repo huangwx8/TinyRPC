@@ -32,7 +32,8 @@ static int ConnectTo(const char* ip, int port)
 }
 
 ClientConnectionManager::ClientConnectionManager():
-    Connfd(-1)
+    Connfd(-1),
+    connected(false)
 {
    
 }
@@ -49,16 +50,36 @@ void ClientConnectionManager::HandleCloseEvent(int Fd)
 
 int ClientConnectionManager::Connect(const char* ip, int port)
 {
+    std::unique_lock<std::mutex> connlock(m);
+    assert(!connected);
     Connfd = ConnectTo(ip, port);
     if (Connfd < 0)
     {
         throw "Connect failed";
     }
+    connected = true;
+    c.notify_all();
     return Connfd;
 }
 
 void ClientConnectionManager::Send(const RpcMessage& Message)
 {
+    // Join Connect() and Send()
+    std::unique_lock<std::mutex> connlock(m);
+    // Join Send() and another Send()
+    std::unique_lock<std::mutex> sendlock(m2);
+
+    // if not connected, clearly Connect() has not been enter, wait for Connect() done
+    if (!connected)
+    {
+        c.wait(connlock);
+    }
+
+    // send msg, it would not block
     int ret = send(Connfd, &Message, sizeof(RpcMessage), 0);
-    printf("%d\n",ret);
+    if (ret < 0)
+    {
+        printf("ClientConnectionManager::Send: Send message failed\n");
+        return;
+    }
 }

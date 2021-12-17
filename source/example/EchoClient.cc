@@ -23,21 +23,15 @@ int main(int argc, char* argv[])
     // 初始化Rpc客户端
     PortalClient.Initialize();
     // 启动Rpc客户端
-    auto fut = std::async(std::launch::async, [&]() {
-            PortalClient.Main(argc, argv);
-        }
-    );
-
-    sleep(1);
+    std::thread([&]() {
+        PortalClient.Main(argc, argv);
+    }).detach();
 
     // 发送RPC
     EchoClient.Echo("fuck c++", 114.514, 1919810);
 
+    // 等待服务器的返回值
     sleep(1);
-
-    PortalClient.m_stop = true;
-
-    fut.get();
 
     return 0;
 }

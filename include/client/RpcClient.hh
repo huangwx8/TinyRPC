@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <mutex>
 
 #include <common/RpcTypes.hh>
 
@@ -41,6 +42,7 @@ private:
     ClientConnectionManager* ClientConnectionMgr;
     CallbacksHandler* CallbacksHdr;
 
-public:
+    // concurrency
+    mutable std::mutex m;
     std::atomic<bool> m_stop;
 };

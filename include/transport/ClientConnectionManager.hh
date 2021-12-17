@@ -1,5 +1,9 @@
 #pragma once
 
+#include <atomic>
+#include <mutex>
+#include <condition_variable>
+
 #include <runtime/handlemodel/EventHandler.hh>
 #include <common/RpcTypes.hh>
 
@@ -24,4 +28,9 @@ public:
     void Send(const RpcMessage& Message);
 private:
     int Connfd;
+
+    std::mutex m;
+    std::mutex m2;
+    std::atomic<bool> connected;
+    std::condition_variable c;
 };

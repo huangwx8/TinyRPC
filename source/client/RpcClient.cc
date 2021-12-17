@@ -73,6 +73,10 @@ RpcClient::RpcClient():
 
 RpcClient::~RpcClient()
 {
+    // Stop main()
+    m_stop = true;
+    // we cannot start destructor procedure before main() returns
+    std::unique_lock<std::mutex> lock(m);
     if (router)
     {
         delete router;
@@ -108,6 +112,8 @@ void RpcClient::Initialize()
 
 int RpcClient::Main(int argc, char* argv[])
 {
+    std::unique_lock<std::mutex> lock(m);
+
     if (argc <= 2)
     {
         printf("usage: %s ip_address port_number\n", basename(argv[0]));
@@ -128,10 +134,12 @@ int RpcClient::Main(int argc, char* argv[])
     // 监听所有事件
     poller->AddEvent(Connfd, EPOLLIN | EPOLLERR | EPOLLRDHUP);
 
+    float timeout = 0.1f;
+
     while (!m_stop)
     {
         // wait, but not block, or this loop may dead
-        auto&& tasks = poller->Dispatch(1, *router);
+        auto&& tasks = poller->Dispatch(timeout, *router);
         // process
         for (auto&& task : tasks)
         {
