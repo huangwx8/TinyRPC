@@ -13,6 +13,7 @@
 
 // inner
 #include <transport/ServerTransport.hh>
+#include <common/Logger.hh>
 
 // c-style creator
 static int CreateListenFd(const char* ip, int port)
@@ -55,17 +56,18 @@ ServerTransport::~ServerTransport()
     }
 }
 
-void ServerTransport::Listen()
+void ServerTransport::Listen(const char* ip, int port)
 {
-    ListenFd = CreateListenFd("localhost", 8888);
+    ListenFd = CreateListenFd(ip, port);
     if (ListenFd >= 0)
     {
         OnPostOpenFd(ListenFd, true);
-        printf("ServerTransport::Listen: Start listening at fd [%d]\n", ListenFd);
+        log_dev("ServerTransport::Listen: Start listening at fd [%d]\n", ListenFd);
     }
     else 
     {
-        throw "Listen failed";
+        log_err("Listen failed");
+        exit(1);
     }
 }
 
@@ -77,7 +79,7 @@ void ServerTransport::HandleReadEvent(int Fd)
 
 void ServerTransport::HandleCloseEvent(int Fd)
 {
-    printf("ServerTransport::HandleCloseEvent Close fd [%d]\n", Fd);
+    log_dev("ServerTransport::HandleCloseEvent Close fd [%d]\n", Fd);
     OnPreCloseFd(Fd);
     close(Fd);
 }
@@ -90,9 +92,9 @@ int ServerTransport::Accept()
     int Connfd = accept(ListenFd, (struct sockaddr*)&ClientAddress, &ClientAddrLength);
     if (Connfd < 0)
     {
-        printf("ServerTransport::Accept: Accept failure, errno is %d\n", errno);
+        log_dev("ServerTransport::Accept: Accept failure, errno is %d\n", errno);
         return -1;
     }
-    printf("ServerTransport::Accept: Create a connection at fd [%d]\n", Connfd);
+    log_dev("ServerTransport::Accept: Create a connection at fd [%d]\n", Connfd);
     return Connfd;
 }

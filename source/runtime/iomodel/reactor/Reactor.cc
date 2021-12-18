@@ -18,7 +18,6 @@ void Reactor::Run()
     while (1) 
     {
         auto tasks = _Poller->Dispatch(-1, *MainHandler);
-        //printf("tasks.size() = [%u]\n", tasks.size());
         for (auto& task : tasks)
         {
             _Threadpool.AddTask(std::move(task));

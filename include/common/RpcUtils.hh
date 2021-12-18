@@ -104,7 +104,7 @@ strcpy(__RpcMessage.RpcName, GetServiceName());
 {\
     T1 Arg1;\
     ParseParam(&(Context.RpcParameters[0]), #T1, &Arg1);\
-    RpcImpl(Arg1);\
+    return RpcImpl(Arg1);\
 }
 
 #define SERVER_EXEC_RPC_TwoParams(RpcImpl, T1, T2)\
@@ -112,7 +112,7 @@ strcpy(__RpcMessage.RpcName, GetServiceName());
     T1 Arg1;\
     T2 Arg2;\
     ParseParam(&(Context.RpcParameters[0]), #T1, &Arg1, #T2, &Arg2);\
-    RpcImpl(Arg1, Arg2);\
+    return RpcImpl(Arg1, Arg2);\
 }
 
 #define SERVER_EXEC_RPC_ThreeParams(RpcImpl, T1, T2, T3)\

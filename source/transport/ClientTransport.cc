@@ -10,6 +10,7 @@
 #include <transport/ClientTransport.hh>
 #include <runtime/handlemodel/EventHandlerManager.hh>
 #include <runtime/iomodel/reactor/Poller.hh>
+#include <common/Logger.hh>
 
 static int ConnectTo(const char* ip, int port)
 {
@@ -24,7 +25,7 @@ static int ConnectTo(const char* ip, int port)
 
     if (connect(sockfd, (struct sockaddr*)&server_address, sizeof(server_address)) < 0)
     {
-        printf("connection failed\n");
+        log_dev("connection failed\n");
         close(sockfd);
     }
 
@@ -45,7 +46,8 @@ ClientTransport::~ClientTransport()
 
 void ClientTransport::HandleCloseEvent(int Fd)
 {
-    throw "Server close";
+    log_err("Server close");
+    exit(1);
 }
 
 int ClientTransport::Connect(const char* ip, int port)
@@ -55,7 +57,8 @@ int ClientTransport::Connect(const char* ip, int port)
     Connfd = ConnectTo(ip, port);
     if (Connfd < 0)
     {
-        throw "Connect failed";
+        log_err("Connect failed");
+        exit(1);
     }
     connected = true;
     c.notify_all();
@@ -79,7 +82,7 @@ void ClientTransport::Send(const RpcMessage& Message)
     int ret = send(Connfd, &Message, sizeof(RpcMessage), 0);
     if (ret < 0)
     {
-        printf("ClientTransport::Send: Send message failed\n");
+        log_dev("ClientTransport::Send: Send message failed\n");
         return;
     }
 }

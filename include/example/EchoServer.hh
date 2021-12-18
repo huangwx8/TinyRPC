@@ -10,3 +10,12 @@ public:
     virtual int Handle(const RpcMessage& Context) override;
     virtual int Echo(const char* Message, float FloatNum, int IntegerNum) override;
 };
+
+class GcdServiceImpl : public GcdServiceBase
+{
+public:
+    GcdServiceImpl() = default;
+    virtual ~GcdServiceImpl() = default;
+    virtual int Handle(const RpcMessage& Context) override;
+    virtual int Gcd(int x, int y) override;
+};

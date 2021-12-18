@@ -15,6 +15,8 @@
 #include <runtime/iomodel/reactor/Poller.hh>
 #include <runtime/handlemodel/EventHandler.hh>
 
+#include <common/Logger.hh>
+
 #define MAX_EVENTS 10240
 
 static int setnonblocking(int fd) 
@@ -53,8 +55,6 @@ Poller::~Poller()
 
 std::vector<std::function<void()>> Poller::Dispatch(int Timeout, EventHandler& Handler)
 {
-    //printf("Poller::Dispatch\n");
-
     std::vector<std::function<void()>> tasks;
 
     int NumEvents = epoll_wait(Epollfd, Events, MaxEvents + 1, Timeout);
@@ -66,17 +66,17 @@ std::vector<std::function<void()>> Poller::Dispatch(int Timeout, EventHandler& H
         int Type = 0;
         if (EventType & EPOLLERR)
         {
-            printf("Poller::Dispatch: Got an error from fd [%d]\n", Sockfd);
+            log_dev("Poller::Dispatch: Got an error from fd [%d]\n", Sockfd);
             char errors[100];
             memset(errors, '\0', 100);
             socklen_t length = sizeof(errors);
             if (getsockopt(Sockfd, SOL_SOCKET, SO_ERROR, &errors, &length) < 0)
             {
-                printf("Poller::Dispatch: Get socket option failed\n");
+                log_dev("Poller::Dispatch: Get socket option failed\n");
             }
             else
             {
-                printf("Poller::Dispatch: Errormsg is %s\n", errors);
+                log_dev("Poller::Dispatch: Errormsg is %s\n", errors);
             }
         }
         else if (EventType & EPOLLRDHUP)
@@ -93,7 +93,8 @@ std::vector<std::function<void()>> Poller::Dispatch(int Timeout, EventHandler& H
         }
         else
         {
-            throw "Unexcepted event";
+            log_err("Unexcepted event");
+            exit(1);
         }
         tasks.push_back(
             [&Handler, Sockfd, Type]()
@@ -101,7 +102,6 @@ std::vector<std::function<void()>> Poller::Dispatch(int Timeout, EventHandler& H
                 Handler.HandleEvent(Sockfd, static_cast<EventHandler::EventType>(Type));
             }
         );
-        //printf("Event [%d] on fd [%d]\n", Type, Sockfd);
     }
     return tasks;
 }

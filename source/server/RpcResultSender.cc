@@ -3,6 +3,7 @@
 
 #include <server/RpcResultSender.hh>
 #include <common/RpcTypes.hh>
+#include <common/Logger.hh>
 
 
 RpcResultSender::RpcResultSender(
@@ -17,7 +18,7 @@ RpcResultSender::RpcResultSender(
 
 void RpcResultSender::HandleWriteEvent(int Fd)
 {
-    printf("RpcResultSender::HandleWriteEvent: Fd = [%d]\n", Fd);
+    log_dev("RpcResultSender::HandleWriteEvent: Fd = [%d]\n", Fd);
     
     int Connfd = Fd;
     RpcResult Result = GetData(Fd);

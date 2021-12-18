@@ -2,6 +2,7 @@
 
 #include <common/RpcServiceProxy.hh>
 #include <common/RpcTypes.hh>
+#include <common/Logger.hh>
 #if BUILD_CLIENT
 #include <client/RpcClient.hh>
 #endif
@@ -19,7 +20,7 @@ void RpcServiceProxy::Invoke(const RpcMessage& Context)
 { 
     if (!RpcPortal)
     {
-        printf("RpcServiceProxy::Invoke: Error! Illegal invocation of Invoke, please make sure RpcClient.Bind() is done!\n");
+        log_dev("RpcServiceProxy::Invoke: Error! Illegal invocation of Invoke, please make sure RpcClient.Bind() is done!\n");
         return;
     }
 #if BUILD_CLIENT
@@ -29,7 +30,8 @@ void RpcServiceProxy::Invoke(const RpcMessage& Context)
 
 int RpcServiceProxy::Handle(const RpcMessage& Context) 
 {
-    throw "RpcServiceProxy::Handle is not implemented!\n";
+    log_err("RpcServiceProxy::Handle is not implemented!\n");
+    exit(1);
 };
 
 const char* RpcServiceProxy::GetServiceName()

@@ -28,7 +28,7 @@ public:
     /**
      * Listen wrapper
      */
-    void Listen();
+    void Listen(const char* ip, int port);
 private:
     /**
      * Accept wrapper

@@ -7,6 +7,7 @@
 
 // inner
 #include <server/RpcRequestHandler.hh>
+#include <common/Logger.hh>
 #include <common/RpcUtils.hh>
 #include <common/RpcTypes.hh>
 #include <common/RpcServiceProxy.hh>
@@ -31,7 +32,7 @@ void RpcRequestHandler::HandleReadEvent(int Fd)
         // bad read
         if (errno != EAGAIN)
         {
-            printf("RpcRequestHandler::HandleReadEvent: Bad recv\n");
+            log_dev("RpcRequestHandler::HandleReadEvent: Bad recv\n");
             return;
         }
     }
@@ -42,7 +43,7 @@ void RpcRequestHandler::HandleReadEvent(int Fd)
     // successfully got some bits, try run corresponding rpc service
     else
     {
-        printf("RpcRequestHandler::HandleReadEvent: get rpc request from %d\n", Connfd);
+        log_dev("RpcRequestHandler::HandleReadEvent: get rpc request from %d\n", Connfd);
         std::string RpcName = Message.RpcName;
         if (RpcServiceDict.find(RpcName) != RpcServiceDict.end())
         {
@@ -51,7 +52,7 @@ void RpcRequestHandler::HandleReadEvent(int Fd)
         }
         else
         {
-            printf("RpcRequestHandler::HandleReadEvent: Warning! Service [%s] not found\n", Message.RpcName);
+            log_dev("RpcRequestHandler::HandleReadEvent: Warning! Service [%s] not found\n", Message.RpcName);
         }
     }
     OnFinishTask(Fd, Message.Callid, TaskRetVal);

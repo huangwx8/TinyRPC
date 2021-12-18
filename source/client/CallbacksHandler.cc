@@ -10,10 +10,12 @@
 #include <common/RpcTypes.hh>
 #include <common/Guid.hh>
 #include <common/Defines.hh>
+#include <common/Logger.hh>
 
 static void ErrorCallback(int retval)
 {
-    throw "Uninitialized callback function, client may receive a bad rpc response packet.";
+    log_err("Uninitialized callback function, client may receive a bad rpc response packet.");
+    exit(1);
 }
 
 CallbacksHandler::CallbacksHandler():
@@ -35,7 +37,7 @@ void CallbacksHandler::HandleReadEvent(int Fd)
     int ret = recv(Fd, &res, sizeof(RpcResult), 0);
     if (ret == -1)
     {
-        printf("CallbacksHandler::HandleReadEvent: receive failed.\n");
+        log_dev("CallbacksHandler::HandleReadEvent: receive failed.\n");
         return;
     }
 

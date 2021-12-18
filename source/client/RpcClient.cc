@@ -1,26 +1,53 @@
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <assert.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <errno.h>
 #include <string.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <poll.h>
-#include <fcntl.h>
-#include "sys/epoll.h"
+#include <sys/epoll.h>
 
 #include <client/RpcClient.hh>
-
-#include <common/RpcServiceProxy.hh>
-#include <transport/ClientTransport.hh>
-#include <runtime/iomodel/reactor/Poller.hh>
-#include <runtime/handlemodel/EventHandlerManager.hh>
 #include <client/CallbacksHandler.hh>
 
+#include <common/RpcServiceProxy.hh>
+#include <common/Logger.hh>
+
+#include <transport/ClientTransport.hh>
+
+#include <runtime/iomodel/reactor/Poller.hh>
+#include <runtime/handlemodel/EventHandlerManager.hh>
+
+
+static void parse_ip_port(int argc, char* argv[], const char*& ip, int& port)
+{
+    const char* const ip_flag = "-ip=";
+    const char* const port_flag = "-port=";
+    int ipflg_len = strlen(ip_flag);
+    int portflg_len = strlen(port_flag);
+
+    for (int i = 1; i < argc; i++)
+    {
+        if (strncmp(argv[i], ip_flag, ipflg_len) == 0)
+        {
+            ip = argv[i] + ipflg_len;
+        }
+        else if (strncmp(argv[i], port_flag, portflg_len) == 0)
+        {
+            port = atoi(argv[i] + portflg_len);
+        }
+    }
+}
+
+static std::string parse_logfilepath(int argc, char* argv[])
+{
+    const char* const log_flag = "-log=";
+    int log_flag_len = strlen(log_flag);
+
+    for (int i = 1; i < argc; i++)
+    {
+        if (strncmp(argv[i], log_flag, log_flag_len) == 0)
+        {
+            return std::string(argv[i] + log_flag_len);
+        }
+    }
+
+    return std::string();
+}
 
 /**
  * 中转站
@@ -114,21 +141,30 @@ int RpcClient::Main(int argc, char* argv[])
 {
     std::unique_lock<std::mutex> lock(m);
 
-    if (argc <= 2)
-    {
-        printf("usage: %s ip_address port_number\n", basename(argv[0]));
-        return 1;
-    }
-    const char * ip = argv[1];
-    int port = atoi(argv[2]);
+    const char* ip = nullptr;
+    int port = -1;
+    parse_ip_port(argc, argv, ip, port);
 
-    // CltConnMgr建立与服务器的连接
+    if (ip == nullptr || port == -1)
+    {
+        printf("usage: %s -ip=svr_addr -port=port_number\n", basename(argv[0]));
+        exit(1);
+    }
+
+    std::string log_path = parse_logfilepath(argc, argv);
+    if (log_path.size() == 0)
+    {
+        log_path = "client.log";
+    }
+    log_path = "log/" + log_path;
+
+    start_log(log_path.c_str());
+    
+    // 建立与服务器的连接
     int Connfd = Transport->Connect(ip, port);
 
-    // 由CltConnMgr处理CLOSE事件
+    // 由Transport处理CLOSE事件
     router->Closehdl = Transport;
-    // 由CltConnMgr处理WRITE事件
-    router->Writehdl = Transport;
     // 由Callbackshdl处理READ事件
     router->Readhdl = Callbackshdl;
     // 监听所有事件
@@ -147,13 +183,15 @@ int RpcClient::Main(int argc, char* argv[])
         }
     }
 
+    stop_log();
+
     return 0;
 }
 
 void RpcClient::SendRequest(const RpcMessage& Message, std::function<void(int)> Callback)
 {
-    Transport->Send(Message);
     Callbackshdl->CallidCallbackMapping[Message.Callid] = Callback;
+    Transport->Send(Message);
 }
 
 void RpcClient::Bind(RpcServiceProxy* ServiceProxy)

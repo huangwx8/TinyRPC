@@ -1,6 +1,8 @@
 // std
 #include <functional>
 #include <assert.h>
+#include <cstring>
+#include <string>
 
 // linux
 #include <sys/epoll.h>
@@ -11,6 +13,7 @@
 #include <server/RpcResultSender.hh>
 
 #include <common/RpcServiceProxy.hh>
+#include <common/Logger.hh>
 
 #include <runtime/iomodel/reactor/Poller.hh>
 #include <runtime/iomodel/reactor/Reactor.hh>
@@ -20,6 +23,42 @@
 
 #include <transport/ServerTransport.hh>
 
+
+static void parse_ip_port(int argc, char* argv[], const char*& ip, int& port)
+{
+    const char* const ip_flag = "-ip=";
+    const char* const port_flag = "-port=";
+    int ipflg_len = strlen(ip_flag);
+    int portflg_len = strlen(port_flag);
+
+    for (int i = 1; i < argc; i++)
+    {
+        if (strncmp(argv[i], ip_flag, ipflg_len) == 0)
+        {
+            ip = argv[i] + ipflg_len;
+        }
+        else if (strncmp(argv[i], port_flag, portflg_len) == 0)
+        {
+            port = atoi(argv[i] + portflg_len);
+        }
+    }
+}
+
+static std::string parse_logfilepath(int argc, char* argv[])
+{
+    const char* const log_flag = "-log=";
+    int log_flag_len = strlen(log_flag);
+
+    for (int i = 1; i < argc; i++)
+    {
+        if (strncmp(argv[i], log_flag, log_flag_len) == 0)
+        {
+            return std::string(argv[i] + log_flag_len);
+        }
+    }
+
+    return std::string();
+}
 
 RpcServer::RpcServer():
     RequestHandler(nullptr),
@@ -133,10 +172,24 @@ void RpcServer::RegisterService(RpcServiceProxy* Service)
 
 int RpcServer::Main(int argc, char* argv[])
 {
+    const char* ip = "localhost";
+    int port = 8888;
+    parse_ip_port(argc, argv, ip, port);
+
+    std::string log_path = parse_logfilepath(argc, argv);
+    if (log_path.size() == 0)
+    {
+        log_path = "server.log";
+    }
+    log_path = "log/" + log_path;
+
+    start_log(log_path.c_str());
     // Listen to clients' connect()
-    Transport->Listen();
+    Transport->Listen(ip, port);
     // poller select several events, deliver them to main handler, and then repeat
     reactor->Run();
+    stop_log();
+
     return 0;
 }
 

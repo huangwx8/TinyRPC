@@ -3,6 +3,7 @@
 
 #include <runtime/handlemodel/EventHandlerManager.hh>
 #include <common/Defines.hh>
+#include <common/Logger.hh>
 
 #define MAX_EVENT_HANDLERS (MAX_FILE_DESCRIPTORS << 2)
 
@@ -30,7 +31,6 @@ EventHandlerManager::~EventHandlerManager()
 
 void EventHandlerManager::HandleEvent(int Fd, EventType Type)
 {
-    //printf("EventHandlerManager::HandleEvent Fd = [%d], Type = [%d]\n", Fd, Type);
     if (Type == 0)
     {
         return;
@@ -41,7 +41,7 @@ void EventHandlerManager::HandleEvent(int Fd, EventType Type)
     }
     else 
     {
-        printf("EventHandlerManager::HandleEvent: Warning! Get EventHandler for fd=[%d], Type=[%d] failed!\n", Fd, static_cast<int>(Type));
+        log_dev("EventHandlerManager::HandleEvent: Warning! Get EventHandler for fd=[%d], Type=[%d] failed!\n", Fd, static_cast<int>(Type));
     }
 }
 

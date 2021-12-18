@@ -32,8 +32,6 @@ public:
     bool Enqueue(T&& t)
     {
         std::unique_lock<std::mutex> lock(m);
-        // printf("SafeQueue::Enqueue from thread ");
-        // std::cout << std::this_thread::get_id() << std::endl;
 
         if (q.size() >= maxsize)
         {
@@ -79,8 +77,6 @@ public:
         {
             data = q.front();
             q.pop();
-            // printf("SafeQueue::Dequeue from thread ");
-            // std::cout << std::this_thread::get_id() << std::endl;
         }
         return true;
     }
