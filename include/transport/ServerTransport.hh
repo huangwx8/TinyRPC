@@ -7,15 +7,15 @@
 class Poller;
 class EventHandlerManager;
 
-class ServerConnectionManager: public EventHandler
+class ServerTransport: public EventHandler
 {
 public:
-    ServerConnectionManager(
+    ServerTransport(
         std::function<void(int, bool)>,
         std::function<void(int)>
     );
 
-    virtual ~ServerConnectionManager();
+    virtual ~ServerTransport();
 
     /**
      * If one EPOLLIN triggered at listenfd, try set up a new tcp connection 

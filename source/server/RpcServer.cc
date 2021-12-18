@@ -18,7 +18,7 @@
 #include <runtime/handlemodel/EventHandlerManager.hh>
 #include <runtime/threadmodel/ThreadPool.hh>
 
-#include <transport/ServerConnectionManager.hh>
+#include <transport/ServerTransport.hh>
 
 
 RpcServer::RpcServer():
@@ -27,7 +27,7 @@ RpcServer::RpcServer():
     EventHandlerMgr(nullptr),
     poller(nullptr),
     reactor(nullptr),
-    ServerConnectionMgr(nullptr)
+    Transport(nullptr)
 {
 
 }
@@ -59,10 +59,10 @@ RpcServer::~RpcServer()
         delete reactor;
         reactor = nullptr;
     }
-    if (ServerConnectionMgr)
+    if (Transport)
     {
-        delete ServerConnectionMgr;
-        ServerConnectionMgr = nullptr;
+        delete Transport;
+        Transport = nullptr;
     }
 }
 
@@ -99,11 +99,11 @@ void RpcServer::Initialize()
     // connections
     std::function<void(int, bool)> RegisterEvent = [this](int Fd, bool bIsListen) {
         // 所有关闭连接的时间由ConnMgr处理
-        EventHandlerMgr->AttachEventHandler(Fd, EventHandler::CLOSE_EVENT, this->ServerConnectionMgr);
+        EventHandlerMgr->AttachEventHandler(Fd, EventHandler::CLOSE_EVENT, this->Transport);
         // 如果是listenfd，则由ConnMgr处理ReadEvent，否则转交对应的请求处理类或响应发送类
         if (bIsListen)
         {
-            EventHandlerMgr->AttachEventHandler(Fd, EventHandler::READ_EVENT, this->ServerConnectionMgr);
+            EventHandlerMgr->AttachEventHandler(Fd, EventHandler::READ_EVENT, this->Transport);
             poller->AddEvent(Fd, EPOLLIN | EPOLLERR | EPOLLRDHUP);
         }
         else 
@@ -120,7 +120,7 @@ void RpcServer::Initialize()
         );
         poller->DelEvent(Fd, 0);
     };
-    ServerConnectionMgr = new ServerConnectionManager(RegisterEvent, UnregisterEvent);
+    Transport = new ServerTransport(RegisterEvent, UnregisterEvent);
 
     // reactor event handle model, is the procedure of main thread
     reactor = new Reactor(poller, dynamic_cast<EventHandler*>(EventHandlerMgr));
@@ -134,7 +134,7 @@ void RpcServer::RegisterService(RpcServiceProxy* Service)
 int RpcServer::Main(int argc, char* argv[])
 {
     // Listen to clients' connect()
-    ServerConnectionMgr->Listen();
+    Transport->Listen();
     // poller select several events, deliver them to main handler, and then repeat
     reactor->Run();
     return 0;

@@ -8,11 +8,11 @@
 #include <common/RpcTypes.hh>
 
 
-class ClientConnectionManager: public EventHandler
+class ClientTransport: public EventHandler
 {
 public:
-    ClientConnectionManager();
-    virtual ~ClientConnectionManager();
+    ClientTransport();
+    virtual ~ClientTransport();
 
     /**
      * If one EPOLLHUP triggered, we should close connection with server

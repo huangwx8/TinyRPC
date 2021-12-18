@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#include <transport/ClientConnectionManager.hh>
+#include <transport/ClientTransport.hh>
 #include <runtime/handlemodel/EventHandlerManager.hh>
 #include <runtime/iomodel/reactor/Poller.hh>
 
@@ -31,24 +31,24 @@ static int ConnectTo(const char* ip, int port)
     return sockfd;
 }
 
-ClientConnectionManager::ClientConnectionManager():
+ClientTransport::ClientTransport():
     Connfd(-1),
     connected(false)
 {
    
 }
 
-ClientConnectionManager::~ClientConnectionManager()
+ClientTransport::~ClientTransport()
 {
     close(Connfd);
 }
 
-void ClientConnectionManager::HandleCloseEvent(int Fd)
+void ClientTransport::HandleCloseEvent(int Fd)
 {
     throw "Server close";
 }
 
-int ClientConnectionManager::Connect(const char* ip, int port)
+int ClientTransport::Connect(const char* ip, int port)
 {
     std::unique_lock<std::mutex> connlock(m);
     assert(!connected);
@@ -62,7 +62,7 @@ int ClientConnectionManager::Connect(const char* ip, int port)
     return Connfd;
 }
 
-void ClientConnectionManager::Send(const RpcMessage& Message)
+void ClientTransport::Send(const RpcMessage& Message)
 {
     // Join Connect() and Send()
     std::unique_lock<std::mutex> connlock(m);
@@ -79,7 +79,7 @@ void ClientConnectionManager::Send(const RpcMessage& Message)
     int ret = send(Connfd, &Message, sizeof(RpcMessage), 0);
     if (ret < 0)
     {
-        printf("ClientConnectionManager::Send: Send message failed\n");
+        printf("ClientTransport::Send: Send message failed\n");
         return;
     }
 }

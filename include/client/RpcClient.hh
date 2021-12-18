@@ -9,7 +9,7 @@
 class Poller;
 class RpcServiceProxy;
 class EventHandlerRouter;
-class ClientConnectionManager;
+class ClientTransport;
 class CallbacksHandler;
 
 class RpcClient
@@ -40,8 +40,8 @@ public:
 private:
     EventHandlerRouter* router;
     Poller* poller;
-    ClientConnectionManager* ClientConnectionMgr;
-    CallbacksHandler* CallbacksHdr;
+    ClientTransport* Transport;
+    CallbacksHandler* Callbackshdl;
 
     // concurrency
     mutable std::mutex m;

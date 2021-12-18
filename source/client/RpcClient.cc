@@ -16,7 +16,7 @@
 #include <client/RpcClient.hh>
 
 #include <common/RpcServiceProxy.hh>
-#include <transport/ClientConnectionManager.hh>
+#include <transport/ClientTransport.hh>
 #include <runtime/iomodel/reactor/Poller.hh>
 #include <runtime/handlemodel/EventHandlerManager.hh>
 #include <client/CallbacksHandler.hh>
@@ -29,18 +29,18 @@ class EventHandlerRouter: public EventHandler
 {
 public:
     EventHandlerRouter():
-        Readhdr(nullptr),
-        Writehdr(nullptr),
-        Closehdr(nullptr)
+        Readhdl(nullptr),
+        Writehdl(nullptr),
+        Closehdl(nullptr)
     {}
 
     virtual ~EventHandlerRouter() {}
 
     virtual void HandleEvent(int Fd, EventType Type) override;
 
-    EventHandler* Readhdr;
-    EventHandler* Writehdr;
-    EventHandler* Closehdr;
+    EventHandler* Readhdl;
+    EventHandler* Writehdl;
+    EventHandler* Closehdl;
 };
 
 void EventHandlerRouter::HandleEvent(int Fd, EventType Type)
@@ -48,13 +48,13 @@ void EventHandlerRouter::HandleEvent(int Fd, EventType Type)
     switch (Type)
     {
     case CLOSE_EVENT:
-        Closehdr->HandleCloseEvent(Fd);
+        Closehdl->HandleCloseEvent(Fd);
         break;
     case READ_EVENT:
-        Readhdr->HandleReadEvent(Fd);
+        Readhdl->HandleReadEvent(Fd);
         break;
     case WRITE_EVENT:
-        Writehdr->HandleWriteEvent(Fd);
+        Writehdl->HandleWriteEvent(Fd);
         break;
     default:
         break;
@@ -64,8 +64,8 @@ void EventHandlerRouter::HandleEvent(int Fd, EventType Type)
 RpcClient::RpcClient():
     router(nullptr),
     poller(nullptr),
-    ClientConnectionMgr(nullptr),
-    CallbacksHdr(nullptr),
+    Transport(nullptr),
+    Callbackshdl(nullptr),
     m_stop(false)
 {
 
@@ -87,15 +87,15 @@ RpcClient::~RpcClient()
         delete poller;
         poller = nullptr;
     }
-    if (ClientConnectionMgr)
+    if (Transport)
     {
-        delete ClientConnectionMgr;
-        ClientConnectionMgr = nullptr;
+        delete Transport;
+        Transport = nullptr;
     }
-    if (CallbacksHdr)
+    if (Callbackshdl)
     {
-        delete CallbacksHdr;
-        CallbacksHdr = nullptr;
+        delete Callbackshdl;
+        Callbackshdl = nullptr;
     }
 }
 
@@ -104,10 +104,10 @@ void RpcClient::Initialize()
     // create poller
     poller = new Poller(false);
     // connection
-    ClientConnectionMgr = new ClientConnectionManager();
+    Transport = new ClientTransport();
     // create event handlers
     router = new EventHandlerRouter();
-    CallbacksHdr = new CallbacksHandler();
+    Callbackshdl = new CallbacksHandler();
 }
 
 int RpcClient::Main(int argc, char* argv[])
@@ -123,14 +123,14 @@ int RpcClient::Main(int argc, char* argv[])
     int port = atoi(argv[2]);
 
     // CltConnMgr建立与服务器的连接
-    int Connfd = ClientConnectionMgr->Connect(ip, port);
+    int Connfd = Transport->Connect(ip, port);
 
     // 由CltConnMgr处理CLOSE事件
-    router->Closehdr = ClientConnectionMgr;
-    // 由CallbacksHdr处理READ事件
-    router->Readhdr = CallbacksHdr;;
-    // 由RequstSdr处理WRITE事件
-    // router->Writehdr = RpcRequestSender;
+    router->Closehdl = Transport;
+    // 由CltConnMgr处理WRITE事件
+    router->Writehdl = Transport;
+    // 由Callbackshdl处理READ事件
+    router->Readhdl = Callbackshdl;
     // 监听所有事件
     poller->AddEvent(Connfd, EPOLLIN | EPOLLERR | EPOLLRDHUP);
 
@@ -152,8 +152,8 @@ int RpcClient::Main(int argc, char* argv[])
 
 void RpcClient::SendRequest(const RpcMessage& Message, std::function<void(int)> Callback)
 {
-    ClientConnectionMgr->Send(Message);
-    CallbacksHdr->CallidCallbackMapping[Message.Callid] = Callback;
+    Transport->Send(Message);
+    Callbackshdl->CallidCallbackMapping[Message.Callid] = Callback;
 }
 
 void RpcClient::Bind(RpcServiceProxy* ServiceProxy)

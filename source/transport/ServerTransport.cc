@@ -12,7 +12,7 @@
 #include <arpa/inet.h>
 
 // inner
-#include <transport/ServerConnectionManager.hh>
+#include <transport/ServerTransport.hh>
 
 // c-style creator
 static int CreateListenFd(const char* ip, int port)
@@ -37,7 +37,7 @@ static int CreateListenFd(const char* ip, int port)
     return listenfd;
 }
 
-ServerConnectionManager::ServerConnectionManager(
+ServerTransport::ServerTransport(
     std::function<void(int, bool)> RegisterEvent,
     std::function<void(int)> UnregisterEvent
 ):
@@ -47,7 +47,7 @@ ServerConnectionManager::ServerConnectionManager(
    
 }
 
-ServerConnectionManager::~ServerConnectionManager()
+ServerTransport::~ServerTransport()
 {
     if (ListenFd >= 0)
     {
@@ -55,13 +55,13 @@ ServerConnectionManager::~ServerConnectionManager()
     }
 }
 
-void ServerConnectionManager::Listen()
+void ServerTransport::Listen()
 {
     ListenFd = CreateListenFd("localhost", 8888);
     if (ListenFd >= 0)
     {
         OnPostOpenFd(ListenFd, true);
-        printf("ServerConnectionManager::Listen: Start listening at fd [%d]\n", ListenFd);
+        printf("ServerTransport::Listen: Start listening at fd [%d]\n", ListenFd);
     }
     else 
     {
@@ -69,20 +69,20 @@ void ServerConnectionManager::Listen()
     }
 }
 
-void ServerConnectionManager::HandleReadEvent(int Fd)
+void ServerTransport::HandleReadEvent(int Fd)
 {
     int Connfd = Accept();
     OnPostOpenFd(Connfd, false);
 }
 
-void ServerConnectionManager::HandleCloseEvent(int Fd)
+void ServerTransport::HandleCloseEvent(int Fd)
 {
-    printf("ServerConnectionManager::HandleCloseEvent Close fd [%d]\n", Fd);
+    printf("ServerTransport::HandleCloseEvent Close fd [%d]\n", Fd);
     OnPreCloseFd(Fd);
     close(Fd);
 }
 
-int ServerConnectionManager::Accept()
+int ServerTransport::Accept()
 {
     // accept a new tcp connection request
     struct sockaddr_in ClientAddress;
@@ -90,9 +90,9 @@ int ServerConnectionManager::Accept()
     int Connfd = accept(ListenFd, (struct sockaddr*)&ClientAddress, &ClientAddrLength);
     if (Connfd < 0)
     {
-        printf("ServerConnectionManager::Accept: Accept failure, errno is %d\n", errno);
+        printf("ServerTransport::Accept: Accept failure, errno is %d\n", errno);
         return -1;
     }
-    printf("ServerConnectionManager::Accept: Create a connection at fd [%d]\n", Connfd);
+    printf("ServerTransport::Accept: Create a connection at fd [%d]\n", Connfd);
     return Connfd;
 }

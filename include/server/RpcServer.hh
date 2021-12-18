@@ -10,7 +10,7 @@ class RpcServiceProxy;
 class Poller;
 class ThreadPool;
 class EventHandlerManager;
-class ServerConnectionManager;
+class ServerTransport;
 class RpcRequestHandler;
 class RpcResultSender;
 class Reactor;
@@ -45,7 +45,7 @@ private:
     EventHandlerManager* EventHandlerMgr;
     Poller* poller;
     Reactor* reactor;
-    ServerConnectionManager* ServerConnectionMgr;
+    ServerTransport* Transport;
 
     // container
     std::array<std::queue<RpcResult>, MAX_FILE_DESCRIPTORS> PendingResults;
