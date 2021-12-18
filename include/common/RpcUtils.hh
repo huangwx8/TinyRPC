@@ -1,6 +1,7 @@
 #pragma once
 
 #include <common/RpcTypes.hh>
+#include <common/Guid.hh>
 #include <serialization/Serializer.hh>
 
 #include <stdio.h>
@@ -64,6 +65,7 @@ void PackParam(char* Out, const char*& In, ArgumentTypes... Arguments)
 #define INIT_RPCMESSAGE()\
 RpcMessage __RpcMessage;\
 bzero(&__RpcMessage, sizeof(RpcMessage));\
+__RpcMessage.Callid = Guid::GetGuid();\
 strcpy(__RpcMessage.RpcName, GetServiceName());
 
 #define CLIENT_CALL_RPC()\
@@ -119,5 +121,5 @@ strcpy(__RpcMessage.RpcName, GetServiceName());
     T2 Arg2;\
     T3 Arg3;\
     ParseParam(&(Context.RpcParameters[0]), #T1, &Arg1, #T2, &Arg2, #T3, &Arg3);\
-    RpcImpl(Arg1, Arg2, Arg3);\
+    return RpcImpl(Arg1, Arg2, Arg3);\
 }

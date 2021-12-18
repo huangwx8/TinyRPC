@@ -15,7 +15,7 @@
 class Poller
 {
 public:
-    Poller();
+    Poller(bool et = false);
     ~Poller();
     std::vector<std::function<void()>> Dispatch(int Timeout, EventHandler &Handler);
     void AddEvent(int Fd, uint32_t InEvents);
@@ -28,6 +28,8 @@ private:
     int Epollfd;
     // max num of connections
     int MaxEvents;
+    // extra epoll flags, EPOLLET
+    int ExtraFlags;
     // interest set
     struct epoll_event* Events;
 };

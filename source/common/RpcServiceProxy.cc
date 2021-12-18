@@ -18,7 +18,7 @@ void RpcServiceProxy::Invoke(const RpcMessage& Context)
 #endif
 };
 
-void RpcServiceProxy::Handle(const RpcMessage& Context) 
+int RpcServiceProxy::Handle(const RpcMessage& Context) 
 {
     throw "RpcServiceProxy::Handle is not implemented!\n";
 };

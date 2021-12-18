@@ -4,6 +4,7 @@
 #include <array>
 
 #include <common/Defines.hh>
+#include <common/RpcTypes.hh>
 
 class RpcServiceProxy;
 class Poller;
@@ -36,6 +37,8 @@ public:
     int Main(int argc, char* argv[]);
 
 private:
+    void ResetOneshot(int Fd);
+
     // workers
     RpcRequestHandler* RequestHandler;
     RpcResultSender* ResultSender;
@@ -45,5 +48,5 @@ private:
     ServerConnectionManager* ServerConnectionMgr;
 
     // container
-    std::array<std::queue<std::pair<int,int>>, MAX_FILE_DESCRIPTORS> RpcResults;
+    std::array<std::queue<RpcResult>, MAX_FILE_DESCRIPTORS> PendingResults;
 };

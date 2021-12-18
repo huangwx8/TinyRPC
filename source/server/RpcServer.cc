@@ -70,34 +70,31 @@ void RpcServer::Initialize()
 {
     // create event handlers
     // in handler
-    std::function<void(int, int)> PostHandleRequest = [this](int Fd, int RetVal) {
+    std::function<void(int, int, int)> PostHandleRequest = [this](int Fd, int Callid, int RetVal) {
         // 注册返回值列表
-        RpcResults[Fd].push(std::make_pair(0, RetVal));
-        // 允许触发EPOLLIN和EPOLLOUT事件
-        poller->ModEvent(Fd, EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLRDHUP | EPOLLONESHOT);
+        PendingResults[Fd].push({Callid, RetVal});
+        // Epoll modify，如果缓冲区没有待处理的返回值，则关闭EPOLLOUT；
+        // 同时，重设EPOLLONESHOT，如果此时有事件待处理，这将重新触发事件
+        ResetOneshot(Fd);
     };
     RequestHandler = new RpcRequestHandler(PostHandleRequest);
     // out handler
-    std::function<std::pair<int,int>(int)> GetResultPair = [this](int Fd) -> std::pair<int,int> {
-        assert(!RpcResults[Fd].empty());
+    std::function<RpcResult(int)> GetResultPair = [this](int Fd) -> RpcResult {
+        assert(!PendingResults[Fd].empty());
         // 从Fd对应的等待队列中拿一个元素
-        auto&& pack = RpcResults[Fd].front();
-        RpcResults[Fd].pop();
+        auto&& pack = PendingResults[Fd].front();
+        PendingResults[Fd].pop();
         return pack;
     };
     std::function<void(int)> PostSendResult = [this](int Fd) {
-        // 如果等待队列为空，禁止触发EPOLLOUT事件
-        if (RpcResults[Fd].empty())
-        {
-            poller->ModEvent(Fd, EPOLLIN | EPOLLERR | EPOLLRDHUP | EPOLLONESHOT);
-        }
+        ResetOneshot(Fd);
     };
     ResultSender = new RpcResultSender(GetResultPair, PostSendResult);
     // main handler
     EventHandlerMgr = new EventHandlerManager();
 
     // io multiplexing poller
-    poller = new Poller();
+    poller = new Poller(true);
 
     // connections
     std::function<void(int, bool)> RegisterEvent = [this](int Fd, bool bIsListen) {
@@ -141,4 +138,18 @@ int RpcServer::Main(int argc, char* argv[])
     // poller select several events, deliver them to main handler, and then repeat
     reactor->Run();
     return 0;
+}
+
+void RpcServer::ResetOneshot(int Fd)
+{
+    if (!poller) return;
+
+    if (PendingResults[Fd].empty())
+    {
+        poller->ModEvent(Fd, EPOLLIN | EPOLLERR | EPOLLRDHUP | EPOLLONESHOT);
+    }
+    else 
+    {
+        poller->ModEvent(Fd, EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLRDHUP | EPOLLONESHOT);
+    }
 }

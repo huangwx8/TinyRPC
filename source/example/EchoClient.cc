@@ -8,9 +8,10 @@
 #include <common/RpcUtils.hh>
 #include <client/RpcClient.hh>
 
-void EchoServiceProxy::Echo(const char* Message, float FloatNum, int IntegerNum)
+int EchoServiceProxy::Echo(const char* Message, float FloatNum, int IntegerNum)
 {
     CLIENT_CALL_RPC_ThreeParams(Message, FloatNum, IntegerNum);
+    return 0;
 }
 
 int main(int argc, char* argv[])
@@ -29,6 +30,12 @@ int main(int argc, char* argv[])
 
     // 发送RPC
     EchoClient.Echo("fuck c++", 114.514, 1919810);
+
+    EchoClient.Echo("thanku c++", 3.14159, 198434);
+
+    sleep(1);
+
+    EchoClient.Echo("fuck you again", 114.514, 1919810);
 
     // 等待服务器的返回值
     sleep(1);

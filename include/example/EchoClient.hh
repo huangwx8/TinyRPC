@@ -7,5 +7,5 @@ class EchoServiceProxy : public EchoServiceBase
 public:
     EchoServiceProxy() = default;
     virtual ~EchoServiceProxy() = default;
-    virtual void Echo(const char* Message, float FloatNum, int IntegerNum) override;
+    virtual int Echo(const char* Message, float FloatNum, int IntegerNum) override;
 };

@@ -13,7 +13,7 @@ class RpcServiceProxy;
 class RpcRequestHandler: public EventHandler
 {
 public:
-    RpcRequestHandler(std::function<void(int, int)>);
+    RpcRequestHandler(std::function<void(int, int, int)>);
     virtual ~RpcRequestHandler() = default;
     /**
      * If one EPOLLIN triggered at a connfd, try find the matching rpc implematation to process
@@ -27,5 +27,5 @@ private:
     // Name-Service Mapping
     std::unordered_map<std::string, RpcServiceProxy*> RpcServiceDict;
 
-    std::function<void(int, int)> OnFinishTask;
+    std::function<void(int, int, int)> OnFinishTask;
 };

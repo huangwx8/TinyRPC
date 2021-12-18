@@ -102,7 +102,7 @@ RpcClient::~RpcClient()
 void RpcClient::Initialize()
 {
     // create poller
-    poller = new Poller();
+    poller = new Poller(false);
     // connection
     ClientConnectionMgr = new ClientConnectionManager();
     // create event handlers

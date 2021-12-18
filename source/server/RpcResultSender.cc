@@ -1,10 +1,12 @@
+#include <stdio.h>
 #include <sys/socket.h>
 
 #include <server/RpcResultSender.hh>
+#include <common/RpcTypes.hh>
 
 
 RpcResultSender::RpcResultSender(
-    std::function<std::pair<int,int>(int)> GetResultPair,
+    std::function<RpcResult(int)> GetResultPair,
     std::function<void(int)> PostSendResult
 ):
     GetData(GetResultPair),
@@ -15,9 +17,10 @@ RpcResultSender::RpcResultSender(
 
 void RpcResultSender::HandleWriteEvent(int Fd)
 {
+    printf("RpcResultSender::HandleWriteEvent: Fd = [%d]\n", Fd);
+    
     int Connfd = Fd;
-    std::pair<int,int> Result = GetData(Fd);
-    int Callid = Result.first, RetVal = Result.second;
-    int ret = send(Connfd, &RetVal, sizeof(RetVal), 0);
+    RpcResult Result = GetData(Fd);
+    int ret = send(Connfd, &Result, sizeof(RpcResult), 0);
     OnFinishSendResult(Fd);
 }

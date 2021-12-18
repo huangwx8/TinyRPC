@@ -11,5 +11,5 @@ public:
         ServiceName = "Echo";
     }
     virtual ~EchoServiceBase() = default;
-    virtual void Echo(const char* Message, float FloatNum, int IntegerNum) = 0;
+    virtual int Echo(const char* Message, float FloatNum, int IntegerNum) = 0;
 };

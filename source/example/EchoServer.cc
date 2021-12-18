@@ -7,14 +7,15 @@
 #include <server/RpcServer.hh>
 
 
-void EchoServiceImpl::Handle(const RpcMessage& Context)
+int EchoServiceImpl::Handle(const RpcMessage& Context)
 {
     SERVER_EXEC_RPC_ThreeParams(Echo, string, float, int);
 }
 
-void EchoServiceImpl::Echo(const char* Message, float FloatNum, int IntegerNum)
+int EchoServiceImpl::Echo(const char* Message, float FloatNum, int IntegerNum)
 {
     printf("Echo: Message=%s, FloatNum=%.3f, IntegerNum=%d\n", Message, FloatNum, IntegerNum);
+    return 8888;
 }
 
 int main(int argc, char* argv[])

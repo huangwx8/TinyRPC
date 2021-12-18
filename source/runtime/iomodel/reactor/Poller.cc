@@ -25,12 +25,17 @@ static int setnonblocking(int fd)
     return old_option;
 }
 
-Poller::Poller()
+Poller::Poller(bool et)
     : Epollfd(epoll_create(1024)),
       MaxEvents(MAX_EVENTS),
+      ExtraFlags(0),
       Events(new epoll_event[MaxEvents + 1])
 {
     assert(Epollfd > 0);
+    if (et)
+    {
+        ExtraFlags = EPOLLET;
+    }
 }
 
 Poller::~Poller() 
@@ -120,6 +125,6 @@ void Poller::ModEvent(int Fd, uint32_t InEvents)
 void Poller::CtrlEvent(int Fd, uint32_t InEvents, int Operation)
 {
     epoll_data_t data{.fd = Fd};
-    epoll_event event{.events = InEvents | EPOLLET, .data = data};
+    epoll_event event{.events = InEvents | ExtraFlags, .data = data};
     epoll_ctl(Epollfd, Operation, Fd, &event);
 }

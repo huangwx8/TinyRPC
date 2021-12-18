@@ -9,6 +9,13 @@
 
 struct RpcMessage
 {
+    int Callid;
     char RpcName[MAX_RPC_NAME_SIZE];
     char RpcParameters[MAX_RPC_PARAMS_SIZE]; 
+};
+
+struct RpcResult
+{
+    int Callid;
+    int RetVal;
 };
