@@ -6,6 +6,15 @@
 #include <client/RpcClient.hh>
 #endif
 
+// for users do not provide a explicit callback function
+static void EmptyCallback(int RetVal) {}
+
+RpcServiceProxy::RpcServiceProxy():
+    Callback(&EmptyCallback)
+{
+
+}
+
 void RpcServiceProxy::Invoke(const RpcMessage& Context) 
 { 
     if (!RpcPortal)
@@ -14,7 +23,7 @@ void RpcServiceProxy::Invoke(const RpcMessage& Context)
         return;
     }
 #if BUILD_CLIENT
-    RpcPortal->SendRequest(Context);
+    RpcPortal->SendRequest(Context, Callback);
 #endif
 };
 
@@ -26,4 +35,9 @@ int RpcServiceProxy::Handle(const RpcMessage& Context)
 const char* RpcServiceProxy::GetServiceName()
 {
     return ServiceName;
+}
+
+void RpcServiceProxy::SetCallback(std::function<void(int)> Func)
+{
+    Callback = Func;
 }

@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <mutex>
+#include <functional>
 
 #include <common/RpcTypes.hh>
 
@@ -30,7 +31,7 @@ public:
      * client send rpc request
      * Not reentrant now, consider to use task queue in the future
      */
-    void SendRequest(const RpcMessage& Message);
+    void SendRequest(const RpcMessage& Message, std::function<void(int)>);
     /** 
      * Bind a proxy to this
      */

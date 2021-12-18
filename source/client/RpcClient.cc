@@ -150,9 +150,10 @@ int RpcClient::Main(int argc, char* argv[])
     return 0;
 }
 
-void RpcClient::SendRequest(const RpcMessage& Message)
+void RpcClient::SendRequest(const RpcMessage& Message, std::function<void(int)> Callback)
 {
     ClientConnectionMgr->Send(Message);
+    CallbacksHdr->CallidCallbackMapping[Message.Callid] = Callback;
 }
 
 void RpcClient::Bind(RpcServiceProxy* ServiceProxy)

@@ -28,6 +28,12 @@ int main(int argc, char* argv[])
         PortalClient.Main(argc, argv);
     }).detach();
 
+    // 绑定回调
+    EchoClient.SetCallback(
+        [](int x) {
+            printf("Callback function: receive rpc return value [%d]\n", x);
+        }
+    );
     // 发送RPC
     EchoClient.Echo("fuck c++", 114.514, 1919810);
 
