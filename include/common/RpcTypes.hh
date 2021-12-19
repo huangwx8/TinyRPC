@@ -12,6 +12,12 @@ struct RpcMessage
     int Callid;
     char RpcName[MAX_RPC_NAME_SIZE];
     char RpcParameters[MAX_RPC_PARAMS_SIZE]; 
+    // Todo: use terminate marker marks the end of RpcParameters,
+    // so we do not need to pass all the struct into netdriver
+    int Length()
+    {
+
+    }
 };
 
 struct RpcResult
