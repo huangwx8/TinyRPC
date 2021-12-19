@@ -3,6 +3,7 @@
 #include <atomic>
 #include <mutex>
 #include <functional>
+#include <condition_variable>
 
 #include <common/RpcTypes.hh>
 
@@ -45,5 +46,8 @@ private:
 
     // concurrency
     mutable std::mutex m;
+    mutable std::mutex m2;
+    std::condition_variable c;
+    std::atomic<bool> initialized;
     std::atomic<bool> m_stop;
 };

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <atomic>
-#include <mutex>
-#include <condition_variable>
+#include <unordered_map>
+#include <queue>
+#include <functional>
 
 #include <runtime/handlemodel/EventHandler.hh>
 #include <common/RpcTypes.hh>
@@ -10,6 +10,7 @@
 
 class ClientTransport: public EventHandler
 {
+    friend class RpcClient;
 public:
     ClientTransport();
     virtual ~ClientTransport();
@@ -18,6 +19,10 @@ public:
      * If one EPOLLHUP triggered, we should close connection with server
      */
     virtual void HandleCloseEvent(int Fd) override;
+    /**
+     * If one EPOLLOUT triggered, we should select a queued rpc request and send
+     */
+    virtual void HandleWriteEvent(int Fd) override;
     /**
      * Connect wrapper
      */
@@ -28,9 +33,6 @@ public:
     void Send(const RpcMessage& Message);
 private:
     int Connfd;
-
-    std::mutex m;
-    std::mutex m2;
-    std::atomic<bool> connected;
-    std::condition_variable c;
+    std::queue<RpcMessage> PendingRequests;
+    std::function<void()> OnNoRequestToSend;
 };

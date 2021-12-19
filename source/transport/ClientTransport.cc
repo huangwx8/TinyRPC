@@ -34,7 +34,7 @@ static int ConnectTo(const char* ip, int port)
 
 ClientTransport::ClientTransport():
     Connfd(-1),
-    connected(false)
+    OnNoRequestToSend([](){})
 {
    
 }
@@ -50,34 +50,38 @@ void ClientTransport::HandleCloseEvent(int Fd)
     exit(1);
 }
 
+void ClientTransport::HandleWriteEvent(int Fd)
+{
+    assert(Fd == Connfd);
+
+    // 如果当前没有等待发送的Rpc，则关闭EPOLLOUT
+    if (PendingRequests.empty())
+    {
+        log_dev("no more request to send\n");
+        OnNoRequestToSend();
+    }
+    else 
+    {
+        log_dev("send a request datagram\n");
+        RpcMessage msg = PendingRequests.front();
+        Send(msg);
+        PendingRequests.pop();
+    }
+}
+
 int ClientTransport::Connect(const char* ip, int port)
 {
-    std::unique_lock<std::mutex> connlock(m);
-    assert(!connected);
     Connfd = ConnectTo(ip, port);
     if (Connfd < 0)
     {
         log_err("Connect failed");
         exit(1);
     }
-    connected = true;
-    c.notify_all();
     return Connfd;
 }
 
 void ClientTransport::Send(const RpcMessage& Message)
 {
-    // Join Connect() and Send()
-    std::unique_lock<std::mutex> connlock(m);
-    // Join Send() and another Send()
-    std::unique_lock<std::mutex> sendlock(m2);
-
-    // if not connected, clearly Connect() has not been enter, wait for Connect() done
-    if (!connected)
-    {
-        c.wait(connlock);
-    }
-
     // send msg, it would not block
     int ret = send(Connfd, &Message, sizeof(RpcMessage), 0);
     if (ret < 0)
