@@ -41,4 +41,11 @@ private:
 
     // Listen file descriptor
     int ListenFd;
+
+    // Todo: Kill dead connections
+    /**
+     * update last active time, register a new timer task
+     */
+    // void OnConnectionActivated(int Fd);
+    // std::array<int, MAX_FILE_DESCRIPTORS> ConnectionLastActiveTime;
 };
