@@ -159,7 +159,7 @@ int RpcClient::Main(int argc, char* argv[])
     log_path = "log/" + log_path;
 
     start_log(log_path.c_str());
-    
+
     // 建立与服务器的连接
     int Connfd = Transport->Connect(ip, port);
 
@@ -170,7 +170,8 @@ int RpcClient::Main(int argc, char* argv[])
     // 监听所有事件
     poller->AddEvent(Connfd, EPOLLIN | EPOLLERR | EPOLLRDHUP);
 
-    float timeout = 0.1f;
+    // 0.1s
+    int timeout = 100;
 
     while (!m_stop)
     {

@@ -9,7 +9,13 @@
 #include <vector>
 #include <queue>
 
+#include <pthread.h>
+#include <errno.h>
+
 #include <common/Defines.hh>
+#include <common/Logger.hh>
+
+int GlobalTimer::ConstructCounter = 0;
 
 struct TimerTask
 {
@@ -21,34 +27,47 @@ struct TimerTask
     }
 };
 
+// 调度定时器任务的数据结构
 std::priority_queue<TimerTask, 
     std::vector<TimerTask>, 
     std::function<bool(TimerTask&, TimerTask&)>> timers(&TimerTask::Compare);
+// Linux信号集
+sigset_t set;
+// 定时器线程
+pthread_t timer_thread;
 
-/** c-style signal handler function */
-static void sig_handler(int sig)
+
+/** 
+ * c-style dedicated signal process thread
+ * refer to "pthread_sigmask man"
+ */
+static void* sig_thread(void* args)
 {
-    if (sig == SIGALRM)
+    int s, sig;
+    while (1) 
     {
-        Timer::Tick();
+        s = sigwait(&set, &sig);
+        assert(s == 0);
+        if (sig == SIGALRM)
+        {
+            Timer::Tick();
+        }
     }
-}
-
-/** c-style signal control function */
-static void addsig(int sig)
-{
-    struct sigaction sa;
-    memset(&sa, '\0', sizeof(sa));
-    sa.sa_handler = sig_handler;
-    sa.sa_flags |= SA_RESTART;
-    sigfillset(&sa.sa_mask);
-    assert(sigaction(sig, &sa, NULL) != -1);
 }
 
 void Timer::Start()
 {
+    // Linux信号对多线程的支持不是很人道，一般会选择开辟一个新的线程专门处理linux信号
+    
+    // 信号集增加 SIGALRM 信号
+    sigemptyset(&set);
+    sigaddset(&set, SIGALRM);
+    // 所有线程屏蔽 SIGALRM
+    assert(pthread_sigmask(SIG_BLOCK, &set, NULL) == 0);
+    // 用一个线程使用sigwait调用接受信号
+    assert(pthread_create(&timer_thread, NULL, &sig_thread, NULL) == 0);
+    // TICK_INTERVAL 秒后，产生一个SIGALRM
     alarm(TICK_INTERVAL);
-    addsig(SIGALRM);
 }
 
 void Timer::Tick()
@@ -57,7 +76,7 @@ void Timer::Tick()
     {
         auto&& task = timers.top();
         time_t CurrentTime = time(NULL);
-        if (CurrentTime > task.Expire)
+        if (CurrentTime >= task.Expire)
         {
             task.Execution();
             timers.pop();
@@ -73,13 +92,18 @@ void Timer::Tick()
 void Timer::AddTimer(int sec, std::function<void()> func)
 {
     time_t CurrentTime = time(NULL);
-    timers.push({CurrentTime, func});
+    timers.push({CurrentTime + sec, func});
 }
 
 void Timer::Stop()
 {
+    // 注销SIGALRM
+    alarm(0);
+    // 注销所有定时器任务
     while(!timers.empty())
     {
         timers.pop();
     }
+    // 撤销定时器线程
+    assert(pthread_cancel(timer_thread) == 0);
 }

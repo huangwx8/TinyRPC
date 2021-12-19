@@ -22,3 +22,27 @@ public:
      */
     static void Stop();
 };
+
+
+// Timer's RAII Wrapper
+class GlobalTimer
+{
+public:
+    GlobalTimer()
+    {
+        if (ConstructCounter == 0)
+        {
+            Timer::Start();
+            ConstructCounter++;
+        }
+    }
+    ~GlobalTimer()
+    {
+        if (ConstructCounter == 1)
+        {
+            Timer::Stop();
+            ConstructCounter--;
+        }
+    }
+    static int ConstructCounter;
+};

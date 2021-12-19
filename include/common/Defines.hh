@@ -4,4 +4,4 @@
 
 #define MAX_REQUESTS 1024
 
-#define TICK_INTERVAL 5
+#define TICK_INTERVAL 1

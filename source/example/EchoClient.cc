@@ -7,6 +7,7 @@
 #include <common/RpcTypes.hh>
 #include <common/RpcUtils.hh>
 #include <common/Logger.hh>
+#include <common/Timer.hh>
 #include <client/RpcClient.hh>
 
 int EchoServiceProxy::Echo(const char* Message, float FloatNum, int IntegerNum)
@@ -26,6 +27,7 @@ int main(int argc, char* argv[])
     EchoServiceProxy EchoClient;
     GcdServiceProxy GcdClient;
     RpcClient PortalClient;
+    GlobalTimer timer;
 
     // 代理绑定到Rpc客户端
     PortalClient.Bind(&EchoClient);
@@ -50,13 +52,11 @@ int main(int argc, char* argv[])
     );
     // 发送RPC
     EchoClient.Echo("fuck c++", 114.514, 1919810);
-
     EchoClient.Echo("thanku c++", 3.14159, 198434);
-
     GcdClient.Gcd(1344, 42);
 
     // 等待服务器的返回值
-    sleep(1);
+    sleep(10);
 
     return 0;
 }
