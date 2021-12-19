@@ -137,7 +137,7 @@ void RpcServer::Initialize()
 
     // connections
     std::function<void(int, bool)> RegisterEvent = [this](int Fd, bool bIsListen) {
-        // 所有关闭连接的时间由ConnMgr处理
+        // 所有关闭连接的事件由ConnMgr处理
         EventHandlerMgr->AttachEventHandler(Fd, EventHandler::CLOSE_EVENT, this->Transport);
         // 如果是listenfd，则由ConnMgr处理ReadEvent，否则转交对应的请求处理类或响应发送类
         if (bIsListen)

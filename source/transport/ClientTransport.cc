@@ -64,8 +64,8 @@ void ClientTransport::HandleWriteEvent(int Fd)
     {
         log_dev("send a request datagram\n");
         RpcMessage msg = PendingRequests.front();
-        Send(msg);
         PendingRequests.pop();
+        Send(msg);
     }
 }
 
