@@ -136,6 +136,7 @@ void RpcClient::Initialize()
     Transport = new ClientTransport();
     Transport->OnNoRequestToSend = [this]()
     {
+        std::unique_lock<std::mutex> pollerlock(m2);
         // 关闭EPOLLOUT
         poller->ModEvent(Transport->Connfd, EPOLLIN | EPOLLERR | EPOLLRDHUP);
     };
@@ -207,11 +208,11 @@ int RpcClient::Main(int argc, char* argv[])
 
 void RpcClient::SendRequest(const RpcMessage& Message, std::function<void(int)> Callback)
 {
-    std::unique_lock<std::mutex> initlock(m2);
+    std::unique_lock<std::mutex> sendlock(m2);
     // if not initialized, wait for initialization is done
     if (!initialized)
     {
-        c.wait(initlock);
+        c.wait(sendlock);
     }
     // 注册回调
     Callbackshdl->CallidCallbackMapping[Message.Callid] = Callback;
