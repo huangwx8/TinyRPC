@@ -42,13 +42,13 @@ int main(int argc, char* argv[])
 {
     EchoServiceImpl EchoServer;
     GcdServiceImpl GcdServer;
-    RpcServer PortalServer;
+    RpcServer ServerStub;
 
     // 初始化Rpc服务端
-    PortalServer.Initialize();
+    ServerStub.Initialize();
     // 实现绑定到Rpc服务端
-    PortalServer.RegisterService(&EchoServer);
-    PortalServer.RegisterService(&GcdServer);
+    ServerStub.RegisterService(&EchoServer);
+    ServerStub.RegisterService(&GcdServer);
     // 启动Rpc服务端
-    PortalServer.Main(argc, argv);
+    ServerStub.Main(argc, argv);
 }

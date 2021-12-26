@@ -56,13 +56,13 @@ public:
 };
 
 EchoServiceImpl EchoServer;
-RpcServer PortalServer;
+RpcServer ServerStub;
 // 初始化Rpc服务端
-PortalServer.Initialize();
+ServerStub.Initialize();
 // 实现绑定到Rpc服务端
-PortalServer.RegisterService(&EchoServer);
+ServerStub.RegisterService(&EchoServer);
 // 启动Rpc服务端
-PortalServer.Main(argc, argv);
+ServerStub.Main(argc, argv);
 ```
 
 继承`ServiceBase`类，在客户端实现Rpc调用代理，只需在客户端的代理函数内添加一条宏。
@@ -80,15 +80,15 @@ public:
 };
 
 EchoServiceProxy EchoClient;
-RpcClient PortalClient;
+RpcClient ClientStub;
 
 // 代理绑定到Rpc客户端
-PortalClient.Bind(&EchoClient);
+ClientStub.Bind(&EchoClient);
 // 初始化Rpc客户端
-PortalClient.Initialize();
+ClientStub.Initialize();
 // 在异步线程启动Rpc客户端
 std::thread([&]() {
-    PortalClient.Main(argc, argv);
+    ClientStub.Main(argc, argv);
 }).detach();
 
 // 绑定回调

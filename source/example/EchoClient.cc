@@ -26,17 +26,17 @@ int main(int argc, char* argv[])
 {
     EchoServiceProxy EchoClient;
     GcdServiceProxy GcdClient;
-    RpcClient PortalClient;
+    RpcClient ClientStub;
     GlobalTimer timer;
 
     // 代理绑定到Rpc客户端
-    PortalClient.Bind(&EchoClient);
-    PortalClient.Bind(&GcdClient);
+    ClientStub.Bind(&EchoClient);
+    ClientStub.Bind(&GcdClient);
     // 初始化Rpc客户端
-    PortalClient.Initialize();
+    ClientStub.Initialize();
     // 启动Rpc客户端
     std::thread([&]() {
-        PortalClient.Main(argc, argv);
+        ClientStub.Main(argc, argv);
     }).detach();
 
     // 绑定回调
