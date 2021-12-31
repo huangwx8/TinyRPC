@@ -8,7 +8,7 @@
 // inner
 #include <runtime/handlemodel/EventHandler.hh>
 
-class RpcServiceProxy;
+class RpcServiceBase;
 
 class RpcRequestHandler: public EventHandler
 {
@@ -22,10 +22,10 @@ public:
     /**
      * Add a rpc service implementation object into hash map, it can be found in next HandleReadEvent
      */
-    void AddProxy(RpcServiceProxy* Service);
+    void AddProxy(RpcServiceBase* Service);
 private:
     // Name-Service Mapping
-    std::unordered_map<std::string, RpcServiceProxy*> RpcServiceDict;
+    std::unordered_map<std::string, RpcServiceBase*> RpcServiceDict;
 
     std::function<void(int, int, int)> OnFinishTask;
 };

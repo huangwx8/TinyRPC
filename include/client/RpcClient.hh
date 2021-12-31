@@ -8,7 +8,7 @@
 #include <common/RpcTypes.hh>
 
 class Poller;
-class RpcServiceProxy;
+class RpcServiceBase;
 class EventHandlerRouter;
 class ClientTransport;
 class CallbacksHandler;
@@ -36,7 +36,11 @@ public:
     /** 
      * Bind a proxy to this
      */
-    void Bind(RpcServiceProxy* ServiceProxy);
+    void Bind(RpcServiceBase* ServiceProxy);
+    /** 
+     * Get a rpc client
+     */
+    static RpcClient& GetRpcClient(int argc, char* argv[]);
 
 private:
     EventHandlerRouter* router;

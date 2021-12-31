@@ -6,7 +6,7 @@
 #include <common/Defines.hh>
 #include <common/RpcTypes.hh>
 
-class RpcServiceProxy;
+class RpcServiceBase;
 class Poller;
 class ThreadPool;
 class EventHandlerManager;
@@ -30,7 +30,7 @@ public:
     /**
      * Register a new custom service object
      */
-    void RegisterService(RpcServiceProxy* Service);
+    void RegisterService(RpcServiceBase* Service);
     /**
      * Main entry
      */

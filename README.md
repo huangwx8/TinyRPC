@@ -22,10 +22,10 @@ Common层实现了RPC调用接口，全局Uid管理，异步日志，定时器�
 
 为了实现远端调用，你需要一个Rpc代理类，用于客户端发起(invoke)Rpc调用；同时需要在服务器完成Rpc任务的具体实现(implement)，用于具体地执行任务并发回函数返回值。
 
-继承`RpcServiceProxy`，填写ServiceName用于唯一标识Rpc服务名，并增加一个接口函数，声明Rpc函数的参数，返回值。
+继承`RpcServiceBase`，填写ServiceName用于唯一标识Rpc服务名，并增加一个接口函数，声明Rpc函数的参数，返回值。
 
 ```cpp
-class EchoServiceBase : public RpcServiceProxy
+class EchoServiceBase : public RpcServiceBase
 {
 public:
     EchoServiceBase()

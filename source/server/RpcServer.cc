@@ -12,7 +12,7 @@
 #include <server/RpcRequestHandler.hh>
 #include <server/RpcResultSender.hh>
 
-#include <common/RpcServiceProxy.hh>
+#include <common/RpcServiceBase.hh>
 #include <common/Logger.hh>
 
 #include <runtime/iomodel/reactor/Poller.hh>
@@ -165,7 +165,7 @@ void RpcServer::Initialize()
     reactor = new Reactor(poller, dynamic_cast<EventHandler*>(EventHandlerMgr));
 }
 
-void RpcServer::RegisterService(RpcServiceProxy* Service)
+void RpcServer::RegisterService(RpcServiceBase* Service)
 {
     RequestHandler->AddProxy(Service);
 }

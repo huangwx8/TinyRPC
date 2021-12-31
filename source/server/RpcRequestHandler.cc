@@ -10,7 +10,7 @@
 #include <common/Logger.hh>
 #include <common/RpcUtils.hh>
 #include <common/RpcTypes.hh>
-#include <common/RpcServiceProxy.hh>
+#include <common/RpcServiceBase.hh>
 
 
 RpcRequestHandler::RpcRequestHandler(std::function<void(int, int, int)> PostHandleRequest):
@@ -47,7 +47,7 @@ void RpcRequestHandler::HandleReadEvent(int Fd)
         std::string RpcName = Message.RpcName;
         if (RpcServiceDict.find(RpcName) != RpcServiceDict.end())
         {
-            RpcServiceProxy* Service = RpcServiceDict[RpcName];
+            RpcServiceBase* Service = RpcServiceDict[RpcName];
             TaskRetVal = Service->Handle(Message);
         }
         else
@@ -58,7 +58,7 @@ void RpcRequestHandler::HandleReadEvent(int Fd)
     OnFinishTask(Fd, Message.Callid, TaskRetVal);
 }
 
-void RpcRequestHandler::AddProxy(RpcServiceProxy* Service)
+void RpcRequestHandler::AddProxy(RpcServiceBase* Service)
 {
     std::string ServiceName = Service->GetServiceName();
     if (RpcServiceDict.find(ServiceName) == RpcServiceDict.end())

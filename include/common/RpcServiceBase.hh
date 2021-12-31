@@ -6,12 +6,12 @@
 
 class RpcClient;
 
-class RpcServiceProxy
+class RpcServiceBase
 {
     friend RpcClient;
 public:
-    RpcServiceProxy();
-    virtual ~RpcServiceProxy() = default;
+    RpcServiceBase();
+    virtual ~RpcServiceBase() = default;
     virtual void Invoke(const RpcMessage& Context);
     virtual int Handle(const RpcMessage& Context);
     const char* GetServiceName();

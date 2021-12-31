@@ -1,10 +1,11 @@
 #include <string.h>
+#include <thread>
 #include <sys/epoll.h>
 
 #include <client/RpcClient.hh>
 #include <client/CallbacksHandler.hh>
 
-#include <common/RpcServiceProxy.hh>
+#include <common/RpcServiceBase.hh>
 #include <common/Logger.hh>
 
 #include <transport/ClientTransport.hh>
@@ -193,7 +194,6 @@ int RpcClient::Main(int argc, char* argv[])
     {
         // wait, but not block, or this loop may dead
         auto&& tasks = poller->Dispatch(timeout, *router);
-        log_dev("dispatch\n");
         // process
         for (auto&& task : tasks)
         {
@@ -222,7 +222,20 @@ void RpcClient::SendRequest(const RpcMessage& Message, std::function<void(int)> 
     poller->ModEvent(Transport->Connfd, EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLRDHUP);
 }
 
-void RpcClient::Bind(RpcServiceProxy* ServiceProxy)
+void RpcClient::Bind(RpcServiceBase* ServiceProxy)
 {
     ServiceProxy->RpcPortal = this;
+}
+
+RpcClient& RpcClient::GetRpcClient(int argc, char* argv[])
+{
+    static RpcClient ClientStub;
+    // 初始化Rpc客户端
+    ClientStub.Initialize();
+    // 启动Rpc客户端
+    std::thread([&]() {
+        ClientStub.Main(argc, argv);
+    }).detach();
+
+    return ClientStub; 
 }

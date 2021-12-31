@@ -1,9 +1,9 @@
 #pragma once
 
 #include <common/RpcTypes.hh>
-#include <common/RpcServiceProxy.hh>
+#include <common/RpcServiceBase.hh>
 
-class EchoServiceBase : public RpcServiceProxy
+class EchoServiceBase : public RpcServiceBase
 {
 public:
     EchoServiceBase()
@@ -14,7 +14,7 @@ public:
     virtual int Echo(const char* Message, float FloatNum, int IntegerNum) = 0;
 };
 
-class GcdServiceBase : public RpcServiceProxy
+class GcdServiceBase : public RpcServiceBase
 {
 public:
     GcdServiceBase()

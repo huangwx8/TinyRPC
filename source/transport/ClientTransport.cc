@@ -57,12 +57,10 @@ void ClientTransport::HandleWriteEvent(int Fd)
     // 如果当前没有等待发送的Rpc，则关闭EPOLLOUT
     if (PendingRequests.empty())
     {
-        log_dev("no more request to send\n");
         OnNoRequestToSend();
     }
     else 
     {
-        log_dev("send a request datagram\n");
         RpcMessage msg = PendingRequests.front();
         PendingRequests.pop();
         Send(msg);

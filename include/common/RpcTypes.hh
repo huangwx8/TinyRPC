@@ -16,7 +16,7 @@ struct RpcMessage
     // so we do not need to pass all the struct into netdriver
     int Length()
     {
-
+        return 0;
     }
 };
 
