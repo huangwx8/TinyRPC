@@ -1,24 +1,34 @@
 #pragma once
 
 #include <functional>
-
 #include <common/RpcTypes.hh>
-
-class RpcClient;
 
 class RpcServiceBase
 {
-    friend RpcClient;
+    /** Common section */
 public:
     RpcServiceBase();
     virtual ~RpcServiceBase() = default;
-    virtual void Invoke(const RpcMessage& Context);
-    virtual int Handle(const RpcMessage& Context);
     const char* GetServiceName();
-    void SetCallback(std::function<void(int)>);
 protected:
     const char* ServiceName = "None";
+
+#ifdef BUILD_SERVER
+    /** Server section */
+public:
+    virtual int Handle(const RpcMessage& Context);
+#endif
+
+#ifdef BUILD_CLIENT
+    /** Client section */
+    using FCallback = std::function<void(int)>;
+    using FSendChannel = std::function<void(const RpcMessage&, FCallback)>;
+public:
+    virtual void Invoke(const RpcMessage& Context);
+    void SetCallback(const FCallback&);
+    void SetSendChannel(const FSendChannel&);
 private:
-    RpcClient* RpcPortal;
-    std::function<void(int)> Callback;
+    FSendChannel SendChannel;
+    FCallback Callback;
+#endif
 };

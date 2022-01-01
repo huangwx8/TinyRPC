@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <functional>
 
 #include <runtime/handlemodel/EventHandler.hh>
@@ -28,7 +29,7 @@ public:
     /**
      * Listen wrapper
      */
-    void Listen(const char* ip, int port);
+    void Listen(std::string ip, int port);
 private:
     /**
      * Accept wrapper

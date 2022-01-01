@@ -16,14 +16,14 @@
 #include <common/Logger.hh>
 
 // c-style creator
-static int CreateListenFd(const char* ip, int port)
+static int CreateListenFd(std::string ip, int port)
 {
     int ret = 0;
     // net data
     struct sockaddr_in address;
     bzero(&address, sizeof(address));
     address.sin_family = AF_INET;
-    inet_pton(AF_INET, ip, &address.sin_addr);
+    inet_pton(AF_INET, ip.c_str(), &address.sin_addr);
     address.sin_port = htons(port);
     // create socket
     int listenfd = socket(PF_INET, SOCK_STREAM, 0);
@@ -56,7 +56,7 @@ ServerTransport::~ServerTransport()
     }
 }
 
-void ServerTransport::Listen(const char* ip, int port)
+void ServerTransport::Listen(std::string ip, int port)
 {
     ListenFd = CreateListenFd(ip, port);
     if (ListenFd >= 0)

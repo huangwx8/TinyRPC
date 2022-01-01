@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <cstring>
 #include <string>
+#include <thread>
 
 // linux
 #include <sys/epoll.h>
@@ -24,43 +25,8 @@
 #include <transport/ServerTransport.hh>
 
 
-static void parse_ip_port(int argc, char* argv[], const char*& ip, int& port)
-{
-    const char* const ip_flag = "-ip=";
-    const char* const port_flag = "-port=";
-    int ipflg_len = strlen(ip_flag);
-    int portflg_len = strlen(port_flag);
-
-    for (int i = 1; i < argc; i++)
-    {
-        if (strncmp(argv[i], ip_flag, ipflg_len) == 0)
-        {
-            ip = argv[i] + ipflg_len;
-        }
-        else if (strncmp(argv[i], port_flag, portflg_len) == 0)
-        {
-            port = atoi(argv[i] + portflg_len);
-        }
-    }
-}
-
-static std::string parse_logfilepath(int argc, char* argv[])
-{
-    const char* const log_flag = "-log=";
-    int log_flag_len = strlen(log_flag);
-
-    for (int i = 1; i < argc; i++)
-    {
-        if (strncmp(argv[i], log_flag, log_flag_len) == 0)
-        {
-            return std::string(argv[i] + log_flag_len);
-        }
-    }
-
-    return std::string();
-}
-
-RpcServer::RpcServer():
+RpcServer::RpcServer(Options _options):
+    options(_options),
     RequestHandler(nullptr),
     ResultSender(nullptr),
     EventHandlerMgr(nullptr),
@@ -68,11 +34,12 @@ RpcServer::RpcServer():
     reactor(nullptr),
     Transport(nullptr)
 {
-
+    start_log(options.log_path.c_str());
 }
 
 RpcServer::~RpcServer()
 {
+    stop_log();
     if (RequestHandler)
     {
         delete RequestHandler;
@@ -172,23 +139,10 @@ void RpcServer::RegisterService(RpcServiceBase* Service)
 
 int RpcServer::Main(int argc, char* argv[])
 {
-    const char* ip = "localhost";
-    int port = 8888;
-    parse_ip_port(argc, argv, ip, port);
-
-    std::string log_path = parse_logfilepath(argc, argv);
-    if (log_path.size() == 0)
-    {
-        log_path = "server.log";
-    }
-    log_path = "log/" + log_path;
-
-    start_log(log_path.c_str());
     // Listen to clients' connect()
-    Transport->Listen(ip, port);
+    Transport->Listen(options.ip_addr, options.port);
     // poller select several events, deliver them to main handler, and then repeat
     reactor->Run();
-    stop_log();
 
     return 0;
 }
@@ -205,4 +159,16 @@ void RpcServer::ResetOneshot(int Fd)
     {
         poller->ModEvent(Fd, EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLRDHUP | EPOLLONESHOT);
     }
+}
+
+RpcServer& RpcServer::GetRpcServer(Options options)
+{
+    static RpcServer ServerStub(options);
+    // 初始化Rpc客户端
+    ServerStub.Initialize();
+    // 启动Rpc客户端
+    std::thread([&]() {
+        ServerStub.Main(1, nullptr);
+    }).detach();
+    return ServerStub; 
 }

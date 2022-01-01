@@ -18,26 +18,39 @@ class Reactor;
 class RpcServer
 {
 public:
-    RpcServer();
+    struct Options
+    {
+        std::string ip_addr;
+        int port;
+        std::string log_path;
+    };
+public:
+    RpcServer(Options);
     ~RpcServer();
     RpcServer(RpcServer&) = delete;
     RpcServer(RpcServer&&) = delete;
-    
+    /**
+     * Register a new custom service object
+     */
+    void RegisterService(RpcServiceBase* Service);
+/** 
+     * Singleton get
+     */
+    static RpcServer& GetRpcServer(Options options);
+
+private:
     /**
      * Initialize members and environment
      */
     void Initialize();
     /**
-     * Register a new custom service object
-     */
-    void RegisterService(RpcServiceBase* Service);
-    /**
      * Main entry
      */
     int Main(int argc, char* argv[]);
 
-private:
     void ResetOneshot(int Fd);
+
+    Options options;
 
     // workers
     RpcRequestHandler* RequestHandler;

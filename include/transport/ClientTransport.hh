@@ -1,6 +1,7 @@
 #pragma once
 
 #include <queue>
+#include <string>
 #include <functional>
 
 #include <runtime/handlemodel/EventHandler.hh>
@@ -25,7 +26,7 @@ public:
     /**
      * Connect wrapper
      */
-    int Connect(const char* ip, int port);
+    int Connect(std::string ip, int port);
     /**
      * Send wrapper
      */

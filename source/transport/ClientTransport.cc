@@ -6,18 +6,19 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <string>
 
 #include <transport/ClientTransport.hh>
 #include <runtime/handlemodel/EventHandlerManager.hh>
 #include <runtime/iomodel/reactor/Poller.hh>
 #include <common/Logger.hh>
 
-static int ConnectTo(const char* ip, int port)
+static int ConnectTo(std::string ip, int port)
 {
     struct sockaddr_in server_address;
     bzero(&server_address, sizeof(server_address));
     server_address.sin_family = AF_INET;
-    inet_pton(AF_INET, ip, &server_address.sin_addr);
+    inet_pton(AF_INET, ip.c_str(), &server_address.sin_addr);
     server_address.sin_port = htons(port);
 
     int sockfd = socket(PF_INET, SOCK_STREAM, 0);
@@ -67,7 +68,7 @@ void ClientTransport::HandleWriteEvent(int Fd)
     }
 }
 
-int ClientTransport::Connect(const char* ip, int port)
+int ClientTransport::Connect(std::string ip, int port)
 {
     Connfd = ConnectTo(ip, port);
     if (Connfd < 0)
