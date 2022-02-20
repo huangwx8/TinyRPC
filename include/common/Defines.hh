@@ -5,3 +5,5 @@
 #define MAX_REQUESTS 1024
 
 #define TICK_INTERVAL 1
+
+#define MAX_BUFFER 1024

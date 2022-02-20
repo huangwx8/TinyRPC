@@ -8,6 +8,7 @@
 
 // inner
 #include <server/RpcEventHandler.hh>
+#include <common/Defines.hh> 
 #include <common/Logger.hh>
 #include <common/RpcUtils.hh>
 #include <common/RpcTypes.hh>
@@ -32,11 +33,11 @@ RpcRequestHandler::RpcRequestHandler(ReturnValuePipe* pipe, FileDescriptorEventD
 void RpcRequestHandler::HandleReadEvent(int connfd)
 {
     RpcMessage Message;
+    char buf[MAX_BUFFER];
     int TaskRetVal = -1;
-    
-    // bzero receive buffer and receive
-    bzero(&Message, sizeof(RpcMessage));
-    int ret = recv(connfd, &Message, sizeof(RpcMessage), 0);
+    int ret;
+
+    ret = recv(connfd, buf, MAX_BUFFER, 0);
     if (ret < 0)
     {
         // bad read
@@ -51,9 +52,9 @@ void RpcRequestHandler::HandleReadEvent(int connfd)
     else if (ret == 0)
     {
     }
-    // successfully got some bits, try run corresponding rpc service
-    else
+    else 
     {
+        ret = Serializer::Deserialize(buf, &Message);
         log_dev("RpcRequestHandler::HandleReadEvent: get rpc request from %d\n", connfd);
         if (Message.header.magic != RPC_MAGIC_NUMBER) {
             log_dev("RpcRequestHandler::HandleReadEvent: magic number does not match, [%d] excepted but [%d] received\n",

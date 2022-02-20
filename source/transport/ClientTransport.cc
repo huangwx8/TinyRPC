@@ -9,8 +9,13 @@
 #include <string>
 
 #include <transport/ClientTransport.hh>
+
 #include <runtime/handlemodel/EventHandlerManager.hh>
 #include <runtime/iomodel/Poller.hh>
+
+#include <serialization/Serializer.hh>
+
+#include <common/Defines.hh>
 #include <common/Logger.hh>
 
 static int ConnectTo(std::string ip, int port)
@@ -81,8 +86,11 @@ int ClientTransport::Connect(std::string ip, int port)
 
 void ClientTransport::Send(const RpcMessage& Message)
 {
+    char buf[MAX_BUFFER];
+    int size = Serializer::Serialize(&Message, buf);
+
     // send msg, it would not block
-    int ret = send(Connfd, &Message, sizeof(RpcMessage), 0);
+    int ret = send(Connfd, buf, size, 0);
     if (ret < 0)
     {
         log_dev("ClientTransport::Send: Send message failed\n");
