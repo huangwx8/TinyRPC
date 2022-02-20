@@ -8,6 +8,13 @@
 
 #include <common/RpcTypes.hh>
 
+#include <runtime/handlemodel/EventHandlerManager.hh>
+#include <runtime/iomodel/Poller.hh>
+
+#include <transport/ClientTransport.hh>
+
+#include <client/CallbacksHandler.hh>
+
 class Poller;
 class RpcServiceBase;
 class EventHandlerRouter;
@@ -67,10 +74,10 @@ private:
     Options options;
 
     // worker
-    EventHandlerRouter* router;
-    Poller* poller;
-    ClientTransport* Transport;
-    CallbacksHandler* Callbackshdl;
+    EventHandlerRouter _router;
+    Poller _poller;
+    ClientTransport _transport;
+    CallbacksHandler _callback_handler;
 
     // concurrency
     mutable std::mutex m;

@@ -10,7 +10,7 @@
 
 #include <transport/ClientTransport.hh>
 #include <runtime/handlemodel/EventHandlerManager.hh>
-#include <runtime/iomodel/reactor/Poller.hh>
+#include <runtime/iomodel/Poller.hh>
 #include <common/Logger.hh>
 
 static int ConnectTo(std::string ip, int port)

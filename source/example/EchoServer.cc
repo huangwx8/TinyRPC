@@ -64,11 +64,14 @@ int main(int argc, char* argv[])
     EchoServiceImpl EchoServer;
     GcdServiceImpl GcdServer;
     auto options = GetOptions(argc, argv);
-    auto&& ServerStub = RpcServer::GetRpcServer(options);
+    RpcServer ServerStub(options);
     
-    // 实现绑定到Rpc服务端
+    // 实现绑定到RPC服务端
     ServerStub.RegisterService(&EchoServer);
     ServerStub.RegisterService(&GcdServer);
+
+    // 启动RPC服务端
+    ServerStub.Main(argc, argv);
 
     // 接受请求
     sleep(3600);

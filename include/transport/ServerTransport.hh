@@ -3,7 +3,10 @@
 #include <string>
 #include <functional>
 
+#include <runtime/iomodel/Poller.hh>
+#include <runtime/iomodel/Reactor.hh>
 #include <runtime/handlemodel/EventHandler.hh>
+#include <runtime/handlemodel/EventHandlerManager.hh>
 
 class Poller;
 class EventHandlerManager;
@@ -11,10 +14,7 @@ class EventHandlerManager;
 class ServerTransport: public EventHandler
 {
 public:
-    ServerTransport(
-        std::function<void(int, bool)>,
-        std::function<void(int)>
-    );
+    ServerTransport(EventHandler*, EventHandler*);
 
     virtual ~ServerTransport();
 
@@ -30,23 +30,25 @@ public:
      * Listen wrapper
      */
     void Listen(std::string ip, int port);
+
+    Reactor& GetReactor() { return _reactor; }
+
 private:
     /**
      * Accept wrapper
      */
     int Accept();
 
-    // Lambda delegate function, to avoid include higher modules (RpcServer)
-    std::function<void(int, bool)> OnPostOpenFd;
-    std::function<void(int)> OnPreCloseFd;
+    // event handler for connected sockets
+    EventHandler* _socket_reader;
+    EventHandler* _socket_writer;
+
+    // event handler center
+    EventHandlerManager _event_handler_manager;
+
+    // event model
+    Reactor _reactor;
 
     // Listen file descriptor
-    int ListenFd;
-
-    // Todo: Kill dead connections
-    /**
-     * update last active time, register a new timer task
-     */
-    // void OnConnectionActivated(int Fd);
-    // std::array<int, MAX_FILE_DESCRIPTORS> ConnectionLastActiveTime;
+    int _listenfd;
 };

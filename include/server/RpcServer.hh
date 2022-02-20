@@ -6,16 +6,17 @@
 #include <common/Defines.hh>
 #include <common/RpcTypes.hh>
 
+#include <transport/ServerTransport.hh>
+
+#include <server/RpcEventHandler.hh>
+
 class RpcServiceBase;
-class Poller;
-class ThreadPool;
-class EventHandlerManager;
 class ServerTransport;
 class RpcRequestHandler;
 class RpcResultSender;
 class Reactor;
 
-class RpcServer
+class RpcServer: public FileDescriptorEventDelegate
 {
 public:
     struct Options
@@ -25,6 +26,8 @@ public:
         std::string log_path;
     };
 public:
+    virtual void FileDescriptorEventDone(int fd) override;
+public:
     RpcServer(Options);
     ~RpcServer();
     RpcServer(RpcServer&) = delete;
@@ -33,33 +36,20 @@ public:
      * Register a new custom service object
      */
     void RegisterService(RpcServiceBase* Service);
-/** 
-     * Singleton get
-     */
-    static RpcServer& GetRpcServer(Options options);
-
-private:
-    /**
-     * Initialize members and environment
-     */
-    void Initialize();
     /**
      * Main entry
      */
     int Main(int argc, char* argv[]);
 
-    void ResetOneshot(int Fd);
+private:
+    // settings
+    Options _options;
 
-    Options options;
+    // buffer
+    ReturnValuePipe _pipe;
 
     // workers
-    RpcRequestHandler* RequestHandler;
-    RpcResultSender* ResultSender;
-    EventHandlerManager* EventHandlerMgr;
-    Poller* poller;
-    Reactor* reactor;
-    ServerTransport* Transport;
-
-    // container
-    std::array<std::queue<RpcResult>, MAX_FILE_DESCRIPTORS> PendingResults;
+    ServerTransport _transport;
+    RpcRequestHandler _receiver;
+    RpcResultSender _sender;
 };

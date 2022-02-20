@@ -16,7 +16,7 @@
 #include <common/Logger.hh>
 
 // c-style creator
-static int CreateListenFd(std::string ip, int port)
+static int create_listenfd(std::string ip, int port)
 {
     int ret = 0;
     // net data
@@ -39,30 +39,33 @@ static int CreateListenFd(std::string ip, int port)
 }
 
 ServerTransport::ServerTransport(
-    std::function<void(int, bool)> RegisterEvent,
-    std::function<void(int)> UnregisterEvent
+    EventHandler* SocketReader,
+    EventHandler* SocketWriter
 ):
-    OnPostOpenFd(RegisterEvent),
-    OnPreCloseFd(UnregisterEvent)
+    _socket_reader(SocketReader),
+    _socket_writer(SocketWriter),
+    _event_handler_manager(),
+    _reactor(&_event_handler_manager)
 {
    
 }
 
 ServerTransport::~ServerTransport()
 {
-    if (ListenFd >= 0)
+    if (_listenfd >= 0)
     {
-        HandleCloseEvent(ListenFd);
+        HandleCloseEvent(_listenfd);
     }
 }
 
 void ServerTransport::Listen(std::string ip, int port)
 {
-    ListenFd = CreateListenFd(ip, port);
-    if (ListenFd >= 0)
+    _listenfd = create_listenfd(ip, port);
+    if (_listenfd >= 0)
     {
-        OnPostOpenFd(ListenFd, true);
-        log_dev("ServerTransport::Listen: Start listening at fd [%d]\n", ListenFd);
+        _event_handler_manager.AttachEventHandler(_listenfd, EventHandler::READ_EVENT, this);
+        _reactor.GetPoller().AddEvent(_listenfd, EPOLLIN | EPOLLERR | EPOLLRDHUP);
+        log_dev("ServerTransport::Listen: Start listening at ip %s, port %d\n", ip.c_str(), port);
     }
     else 
     {
@@ -73,14 +76,25 @@ void ServerTransport::Listen(std::string ip, int port)
 
 void ServerTransport::HandleReadEvent(int Fd)
 {
+    if (Fd != _listenfd) {
+        log_err("ServerTransport::HandleReadEvent listen at a wrong fd!\n");
+        exit(1);
+    }
     int Connfd = Accept();
-    OnPostOpenFd(Connfd, false);
+    _event_handler_manager.AttachEventHandler(Connfd, EventHandler::READ_EVENT, _socket_reader);
+    _event_handler_manager.AttachEventHandler(Connfd, EventHandler::WRITE_EVENT, _socket_writer);
+    _event_handler_manager.AttachEventHandler(Connfd, EventHandler::CLOSE_EVENT, this);
+    _reactor.GetPoller().AddEvent(Connfd, EPOLLIN | EPOLLERR | EPOLLRDHUP | EPOLLONESHOT);
 }
 
 void ServerTransport::HandleCloseEvent(int Fd)
 {
     log_dev("ServerTransport::HandleCloseEvent Close fd [%d]\n", Fd);
-    OnPreCloseFd(Fd);
+    _event_handler_manager.DetachEventHandler(Fd, static_cast<EventHandler::EventType>(
+            EventHandler::READ_EVENT | EventHandler::WRITE_EVENT | EventHandler::CLOSE_EVENT
+        )
+    );
+    _reactor.GetPoller().DelEvent(Fd, 0);
     close(Fd);
 }
 
@@ -89,7 +103,7 @@ int ServerTransport::Accept()
     // accept a new tcp connection request
     struct sockaddr_in ClientAddress;
     socklen_t ClientAddrLength = sizeof(ClientAddress);
-    int Connfd = accept(ListenFd, (struct sockaddr*)&ClientAddress, &ClientAddrLength);
+    int Connfd = accept(_listenfd, (struct sockaddr*)&ClientAddress, &ClientAddrLength);
     if (Connfd < 0)
     {
         log_dev("ServerTransport::Accept: Accept failure, errno is %d\n", errno);
