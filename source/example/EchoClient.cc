@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
     auto options = GetOptions(argc, argv);
     auto&& ClientStub = RpcClient::GetRpcClient(options);
 
-    auto EchoPtr = ClientStub.GetProxy<EchoServiceProxy>();
+    auto EchoPtr = ClientStub->GetProxy<EchoServiceProxy>();
     EchoPtr->SetCallback(
         [](int x) {
             log_dev("Echo returns [%d]\n", x);
@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
     EchoPtr->Echo("fuck c++", 114.514, 1919810);
     EchoPtr->Echo("thanku c++", 3.14159, 198434);
 
-    auto GcdPtr = ClientStub.GetProxy<GcdServiceProxy>();
+    auto GcdPtr = ClientStub->GetProxy<GcdServiceProxy>();
     GcdPtr->SetCallback(
         [](int x) {
             log_dev("Gcd is [%d]\n", x);

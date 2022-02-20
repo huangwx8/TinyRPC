@@ -30,9 +30,9 @@ public:
     RpcClient(RpcClient&) = delete;
     RpcClient(RpcClient&&) = delete;
     /** 
-     * Singleton get
+     * Construct and initialize
      */
-    static RpcClient& GetRpcClient(Options options);
+    static std::shared_ptr<RpcClient> GetRpcClient(Options options);
     /**
      * Proxy creator
      */

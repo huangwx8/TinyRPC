@@ -164,14 +164,14 @@ void RpcClient::SendRequest(const RpcMessage& Message, std::function<void(int)> 
     poller->ModEvent(Transport->Connfd, EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLRDHUP);
 }
 
-RpcClient& RpcClient::GetRpcClient(Options options)
+std::shared_ptr<RpcClient> RpcClient::GetRpcClient(Options options)
 {
-    static RpcClient ClientStub(options);
+    std::shared_ptr<RpcClient> sp = std::make_shared<RpcClient>(options);
     // 初始化Rpc客户端
-    ClientStub.Initialize();
+    sp->Initialize();
     // 启动Rpc客户端
     std::thread([&]() {
-        ClientStub.Main(1, nullptr);
+        sp->Main(1, nullptr);
     }).detach();
-    return ClientStub; 
+    return sp; 
 }
