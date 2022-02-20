@@ -1,5 +1,7 @@
 CC=g++
 CFLAGS=-g -std=c++11 -lpthread
+SERVERBUILDFLAGS=-DBUILD_SERVER
+CLIENTBUILDFLAGS=-DBUILD_CLIENT
 
 INCLUDE=-I${PWD}/include
 SRCDIR=${PWD}/source
@@ -7,16 +9,28 @@ OBJDIR=${PWD}/obj
 OUTDIR=${PWD}/bin
 
 COMMONOBJECTS=$(patsubst ${SRCDIR}/common/%.cc,${OBJDIR}/common/%.o,$(wildcard ${SRCDIR}/common/*.cc))
+SCOMMONOBJECTS=$(patsubst %.o,%.server.o,${COMMONOBJECTS})
+CCOMMONOBJECTS=$(patsubst %.o,%.client.o,${COMMONOBJECTS})
+
 SERIALIZATIONOBJECTS=$(patsubst ${SRCDIR}/serialization/%.cc,${OBJDIR}/serialization/%.o,$(wildcard ${SRCDIR}/serialization/*.cc))
+SSERIALIZATIONOBJECTS=$(patsubst %.o,%.server.o,${SERIALIZATIONOBJECTS})
+CSERIALIZATIONOBJECTS=$(patsubst %.o,%.client.o,${SERIALIZATIONOBJECTS})
+
 RUNTIMEOBJECTS=$(patsubst ${SRCDIR}/runtime/%.cc,${OBJDIR}/runtime/%.o,$(shell find ${SRCDIR}/runtime/ -name '*.cc'))
+SRUNTIMEOBJECTS=$(patsubst %.o,%.server.o,${RUNTIMEOBJECTS})
+CRUNTIMEOBJECTS=$(patsubst %.o,%.client.o,${RUNTIMEOBJECTS})
+
 TRANSPORTOBJECTS=$(patsubst ${SRCDIR}/transport/%.cc,${OBJDIR}/transport/%.o,$(wildcard ${SRCDIR}/transport/*.cc))
-SERVEROBJECTS=$(patsubst ${SRCDIR}/server/%.cc,${OBJDIR}/server/%.o,$(wildcard ${SRCDIR}/server/*.cc))
-CLIENTOBJECTS=$(patsubst ${SRCDIR}/client/%.cc,${OBJDIR}/client/%.o,$(wildcard ${SRCDIR}/client/*.cc))
+STRANSPORTOBJECTS=$(patsubst %.o,%.server.o,${TRANSPORTOBJECTS})
+CTRANSPORTOBJECTS=$(patsubst %.o,%.client.o,${TRANSPORTOBJECTS})
+
+SERVEROBJECTS=$(patsubst ${SRCDIR}/server/%.cc,${OBJDIR}/server/%.server.o,$(wildcard ${SRCDIR}/server/*.cc))
+CLIENTOBJECTS=$(patsubst ${SRCDIR}/client/%.cc,${OBJDIR}/client/%.client.o,$(wildcard ${SRCDIR}/client/*.cc))
 
 OUTSERVER=${OUTDIR}/EchoServer
 OUTCLIENT=${OUTDIR}/EchoClient
-OUTSERVEROBJECTS=${OBJDIR}/example/EchoServer.o ${COMMONOBJECTS} ${SERIALIZATIONOBJECTS} ${RUNTIMEOBJECTS} ${TRANSPORTOBJECTS} ${SERVEROBJECTS}
-OUTCLIENTOBJECTS=${OBJDIR}/example/EchoClient.o ${COMMONOBJECTS} ${SERIALIZATIONOBJECTS} ${RUNTIMEOBJECTS} ${TRANSPORTOBJECTS} ${CLIENTOBJECTS}
+OUTSERVEROBJECTS=${OBJDIR}/example/EchoServer.server.o ${SCOMMONOBJECTS} ${SSERIALIZATIONOBJECTS} ${SRUNTIMEOBJECTS} ${STRANSPORTOBJECTS} ${SERVEROBJECTS}
+OUTCLIENTOBJECTS=${OBJDIR}/example/EchoClient.client.o ${CCOMMONOBJECTS} ${CSERIALIZATIONOBJECTS} ${CRUNTIMEOBJECTS} ${CTRANSPORTOBJECTS} ${CLIENTOBJECTS}
 
 server: ${OUTSERVER}
 
@@ -34,9 +48,13 @@ ${OUTCLIENT}: ${OUTCLIENTOBJECTS}
 	@$(CC) -o $@ $^ $(CFLAGS)
 	@echo '****************************************************************'
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.cc 
-	@echo 'compiling c++ file $<'
-	@$(CC) -c $(INCLUDE) -o $@ $< $(CFLAGS) $(BUILDFLAGS)
+$(OBJDIR)/%.server.o: $(SRCDIR)/%.cc 
+	@echo 'compiling server c++ file $<'
+	@$(CC) -c $(INCLUDE) -o $@ $< $(CFLAGS) $(SERVERBUILDFLAGS)
+
+$(OBJDIR)/%.client.o: $(SRCDIR)/%.cc 
+	@echo 'compiling client c++ file $<'
+	@$(CC) -c $(INCLUDE) -o $@ $< $(CFLAGS) $(CLIENTBUILDFLAGS)
 
 # clean all .o object files
 clean:
