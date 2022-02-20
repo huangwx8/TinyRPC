@@ -41,9 +41,9 @@ void CallbacksHandler::HandleReadEvent(int Fd)
         return;
     }
 
-    int callid = res.Callid, retval = res.RetVal;
-    (CallidCallbackMapping[callid])(retval);
-    CallidCallbackMapping[callid] = &ErrorCallback;
+    int seqno = res.seqno, retval = res.retval;
+    (CallidCallbackMapping[seqno])(retval);
+    CallidCallbackMapping[seqno] = &ErrorCallback;
 
-    Guid::RecycleGuid(callid);
+    Guid::RecycleGuid(seqno);
 }

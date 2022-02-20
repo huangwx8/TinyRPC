@@ -6,7 +6,7 @@
 
 整体模块划分方式参考 trpc-cpp。
 
-请求报文包括(callid, rpcname, rpcparams)，响应报文包括(callid, retval)。
+请求报文包括(seqno, rpcname, rpcparams)，响应报文包括(seqno, retval)。
 
 rpcparams和retval被序列化协议序列化，序列化协议使用线性组合策略。
 

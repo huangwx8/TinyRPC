@@ -1,5 +1,11 @@
 #pragma once
 
+#include <strings.h>
+#include <common/Guid.hh>
+
+#define RPC_MAGIC_NUMBER 0xabcd
+#define RPC_VERSION 1
+
 #define MAX_RPC_NAME_SIZE 32
 #define MAX_RPC_PARAMS_SIZE 480
 
@@ -7,21 +13,37 @@
 #define FLOAT_TYPE "float"
 #define STRING_TYPE "string"
 
+struct RpcHeader
+{
+    unsigned short magic;
+    unsigned short version;
+    int seqno;
+    int body_length;
+    char servicename[MAX_RPC_NAME_SIZE];
+};
+
+struct RpcBody
+{
+    char parameters[MAX_RPC_PARAMS_SIZE];
+};
+
 struct RpcMessage
 {
-    int Callid;
-    char RpcName[MAX_RPC_NAME_SIZE];
-    char RpcParameters[MAX_RPC_PARAMS_SIZE]; 
-    // Todo: use terminate marker marks the end of RpcParameters,
-    // so we do not need to pass all the struct into netdriver
-    int Length()
+    RpcMessage() 
     {
-        return 0;
+        header.magic = RPC_MAGIC_NUMBER;
+        header.version = RPC_VERSION;
+        header.seqno = Guid::GetGuid();
+        header.body_length = 0;
+        bzero(&header.servicename, sizeof(header.servicename));
+        bzero(&body, sizeof(body));
     }
+    RpcHeader header;
+    RpcBody body;
 };
 
 struct RpcResult
 {
-    int Callid;
-    int RetVal;
+    int seqno;
+    int retval;
 };

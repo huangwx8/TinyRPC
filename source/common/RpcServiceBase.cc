@@ -5,7 +5,7 @@
 #include <common/Logger.hh>
 
 // for users do not provide a explicit callback function
-static void EmptyCallback(int RetVal) {}
+static void EmptyCallback(int retval) {}
 
 RpcServiceBase::RpcServiceBase()
 #ifdef BUILD_CLIENT

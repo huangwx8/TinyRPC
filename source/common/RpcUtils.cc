@@ -14,4 +14,4 @@
 
 void ParseParam(const char* In) { }
 
-void PackParam(char* Out) { }
+int PackParam(char* Out) { return 0; }

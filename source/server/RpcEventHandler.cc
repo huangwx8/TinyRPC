@@ -55,19 +55,29 @@ void RpcRequestHandler::HandleReadEvent(int connfd)
     else
     {
         log_dev("RpcRequestHandler::HandleReadEvent: get rpc request from %d\n", connfd);
-        std::string RpcName = Message.RpcName;
-        if (_dictionary.find(RpcName) != _dictionary.end())
+        if (Message.header.magic != RPC_MAGIC_NUMBER) {
+            log_dev("RpcRequestHandler::HandleReadEvent: magic number does not match, [%d] excepted but [%d] received\n",
+                RPC_MAGIC_NUMBER, Message.header.magic);
+            return;
+        }
+        if (Message.header.version != RPC_VERSION) {
+            log_dev("RpcRequestHandler::HandleReadEvent: version does not match, [%d] excepted but [%d] received\n",
+                RPC_VERSION, Message.header.version);
+            return;
+        }
+        std::string servicename = Message.header.servicename;
+        if (_dictionary.find(servicename) != _dictionary.end())
         {
-            RpcServiceBase* Service = _dictionary[RpcName];
+            RpcServiceBase* Service = _dictionary[servicename];
             TaskRetVal = Service->Handle(Message);
         }
         else 
         {
-            log_dev("RpcRequestHandler::HandleReadEvent: Warning! Service [%s] not found\n", Message.RpcName);
+            log_dev("RpcRequestHandler::HandleReadEvent: Warning! Service [%s] not found\n", Message.header.servicename);
         }
     }
     
-    _pipe->Write(connfd, {Message.Callid, TaskRetVal});
+    _pipe->Write(connfd, {Message.header.seqno, TaskRetVal});
     _finished->FileDescriptorEventDone(connfd);
 }
 

@@ -99,7 +99,7 @@ void RpcClient::SendRequest(const RpcMessage& Message, std::function<void(int)> 
         return;
     }
     // 注册回调
-    _callback_handler.CallidCallbackMapping[Message.Callid] = Callback;
+    _callback_handler.CallidCallbackMapping[Message.header.seqno] = Callback;
     // 新请求入队
     _transport.PendingRequests.push(Message);
     // 打开EPOLLOUT
