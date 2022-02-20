@@ -1,0 +1,19 @@
+{
+    "env": {
+        "myDefaultIncludePath": ["${workspaceFolder}/include"]
+    },
+    "configurations": [
+        {
+            "name": "win",
+            "defines": [
+                "BUILD_SERVER",
+                "BUILD_CLIENT"
+            ],
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "gnu17",
+            "cppStandard": "gnu++17",
+            "includePath": ["${myDefaultIncludePath}"]
+        }
+    ],
+    "version": 4
+}
