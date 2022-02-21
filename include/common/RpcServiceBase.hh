@@ -37,7 +37,7 @@ public:
     }
 
     template<typename T>
-    void AsyncInvoke(const RpcMessage& Context, T func)
+    void AsyncInvoke(RpcMessage Context, T func)
     {
         if (client) 
         {

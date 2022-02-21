@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include <common/RpcTypes.hh>
 #include <common/RpcServiceBase.hh>
 
@@ -11,7 +13,7 @@ public:
         ServiceName = "Echo";
     }
     virtual ~EchoServiceBase() = default;
-    virtual int Echo(const char* Message, float FloatNum, int IntegerNum) = 0;
+    virtual std::string Echo(const char* Message, float FloatNum, int IntegerNum) = 0;
 };
 
 class GcdServiceBase : public RpcServiceBase

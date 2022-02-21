@@ -1,3 +1,4 @@
+#include <string>
 #include <cstring>
 #include <cstdio>
 #include <unistd.h>
@@ -14,10 +15,12 @@ RpcResult EchoServiceImpl::Handle(const RpcMessage& Context)
     SERVER_EXEC_RPC_ThreeParams(Echo, string, float, int);
 }
 
-int EchoServiceImpl::Echo(const char* Message, float FloatNum, int IntegerNum)
+std::string EchoServiceImpl::Echo(const char* Message, float FloatNum, int IntegerNum)
 {
-    log_dev("Echo: Message=%s, FloatNum=%.3f, IntegerNum=%d\n", Message, FloatNum, IntegerNum);
-    return 8888;
+    char str[512];
+    sprintf(str, "Echo: Message=%s, FloatNum=%.3f, IntegerNum=%d\n", Message, FloatNum, IntegerNum);
+    log_dev(str);
+    return std::string(str);
 }
 
 RpcResult GcdServiceImpl::Handle(const RpcMessage& Context)

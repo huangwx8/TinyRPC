@@ -93,6 +93,34 @@ strcpy(__RpcMessage.header.servicename, GetServiceName());\
     Invoke(__RpcMessage);\
 }
 
+#define CLIENT_CALL_RPC_Asynchronously(F)\
+{\
+    INIT_RPCMESSAGE()\
+    __RpcMessage.header.body_length = 0;\
+    AsyncInvoke(__RpcMessage, F);\
+}
+
+#define CLIENT_CALL_RPC_OneParam_Asynchronously(F, P1)\
+{\
+    INIT_RPCMESSAGE()\
+    __RpcMessage.header.body_length = PackParam(&(__RpcMessage.body.parameters[0]), P1);\
+    AsyncInvoke(__RpcMessage, F);\
+}
+
+#define CLIENT_CALL_RPC_TwoParams_Asynchronously(F, P1, P2)\
+{\
+    INIT_RPCMESSAGE()\
+    __RpcMessage.header.body_length = PackParam(&(__RpcMessage.body.parameters[0]), P1, P2);\
+    AsyncInvoke(__RpcMessage, F);\
+}
+
+#define CLIENT_CALL_RPC_ThreeParams_Asynchronously(F, P1, P2, P3)\
+{\
+    INIT_RPCMESSAGE()\
+    __RpcMessage.header.body_length = PackParam(&(__RpcMessage.body.parameters[0]), P1, P2, P3);\
+    AsyncInvoke(__RpcMessage, F);\
+}
+
 RpcResult ToRpcResult(int i);
 
 RpcResult ToRpcResult(float f);

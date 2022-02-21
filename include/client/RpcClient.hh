@@ -43,10 +43,10 @@ public:
     /**
      * Proxy creator
      */
-    template<typename T>
-    std::shared_ptr<T> GetProxy()
+    template<typename T, typename... ArgumentTypes>
+    std::shared_ptr<T> GetProxy(ArgumentTypes... Arguments)
     {
-        std::shared_ptr<T> proxy_ptr = std::make_shared<T>();
+        std::shared_ptr<T> proxy_ptr = std::make_shared<T>(Arguments...);
         proxy_ptr->client = this;
         return proxy_ptr;
     }

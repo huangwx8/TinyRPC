@@ -11,15 +11,27 @@
 #include <common/ArgsParser.hh>
 #include <client/RpcClient.hh>
 
-int EchoServiceProxy::Echo(const char* Message, float FloatNum, int IntegerNum)
+std::string EchoServiceProxy::Echo(const char* Message, float FloatNum, int IntegerNum)
 {
     CLIENT_CALL_RPC_ThreeParams(Message, FloatNum, IntegerNum);
-    return 0;
+    return {};
+}
+
+std::string AsyncEchoServiceProxy::Echo(const char* Message, float FloatNum, int IntegerNum)
+{
+    CLIENT_CALL_RPC_ThreeParams_Asynchronously(_callback, Message, FloatNum, IntegerNum);
+    return {};
 }
 
 int GcdServiceProxy::Gcd(int x, int y)
 {
     CLIENT_CALL_RPC_TwoParams(x ,y);
+    return 0;
+}
+
+int AsyncGcdServiceProxy::Gcd(int x, int y)
+{
+    CLIENT_CALL_RPC_TwoParams_Asynchronously(_callback, x ,y);
     return 0;
 }
 
@@ -42,17 +54,21 @@ int main(int argc, char* argv[])
     auto options = GetOptions(argc, argv);
     auto&& ClientStub = RpcClient::GetRpcClient(options);
 
-    auto EchoPtr = ClientStub->GetProxy<EchoServiceProxy>();
+    std::function<void(std::string)> cb1 = [](std::string s) {
+        log_dev("Echo() remote procedure call received: return %s\n", s.c_str());
+    };
+    auto EchoPtr = ClientStub->GetProxy<AsyncEchoServiceProxy>(cb1);
     EchoPtr->Echo("fuck c++", 114.514, 1919810);
     EchoPtr->Echo("thanku c++", 3.14159, 198434);
 
-    auto GcdPtr = ClientStub->GetProxy<GcdServiceProxy>();
+    std::function<void(int)> cb2 = [](int x) {
+        log_dev("Gcd() remote procedure call received: return %d\n", x);
+    };
+    auto GcdPtr = ClientStub->GetProxy<AsyncGcdServiceProxy>(cb2);
     GcdPtr->Gcd(1344, 42);
 
     // 等待服务器的返回值
     sleep(10);
-
-    log_dev("Client return\n");
 
     return 0;
 }
