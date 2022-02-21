@@ -80,7 +80,7 @@ int RpcClient::Main(int argc, char* argv[])
     return 0;
 }
 
-void RpcClient::SendRequest(const RpcMessage& Message, std::function<void(int)> Callback)
+void RpcClient::SendRequest(const RpcMessage& Message)
 {
     // if not _initialized, interrupt
     if (!_initialized)
@@ -88,8 +88,6 @@ void RpcClient::SendRequest(const RpcMessage& Message, std::function<void(int)> 
         log_err("RpcClient::SendRequest Not _initialized!\n");
         return;
     }
-    // 注册回调
-    _callback_handler.Register(Message.header.seqno, Callback);
     // 新请求入队
     _transport.Push(Message);
 }

@@ -47,14 +47,17 @@ public:
     std::shared_ptr<T> GetProxy()
     {
         std::shared_ptr<T> proxy_ptr = std::make_shared<T>();
-        proxy_ptr->SetSendChannel(
-            [this](const RpcMessage& m, std::function<void(int)> c)
-            {
-                SendRequest(m, c);
-            }
-        );
+        proxy_ptr->client = this;
         return proxy_ptr;
     }
+
+    /** 
+     * client send rpc request
+     * Not reentrant now, consider to use task queue in the future
+     */
+    void SendRequest(const RpcMessage& Message);
+
+    CallbacksHandler& GetCallbacksHandler() { return _callback_handler; }
 
 private:
     /** 
@@ -65,11 +68,6 @@ private:
      * client's main procedure
      */
     int Main(int argc, char* argv[]);
-    /** 
-     * client send rpc request
-     * Not reentrant now, consider to use task queue in the future
-     */
-    void SendRequest(const RpcMessage& Message, std::function<void(int)>);
     
     Options _options;
 

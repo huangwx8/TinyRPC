@@ -8,6 +8,7 @@
 
 #define MAX_RPC_NAME_SIZE 32
 #define MAX_RPC_PARAMS_SIZE 480
+#define MAX_RPC_RETURN_VALUE 64
 
 #define INT_TYPE "int"
 #define FLOAT_TYPE "float"
@@ -17,6 +18,7 @@ struct RpcHeader
 {
     unsigned short magic;
     unsigned short version;
+    bool need_return;
     int seqno;
     int body_length;
     char servicename[MAX_RPC_NAME_SIZE];
@@ -33,6 +35,7 @@ struct RpcMessage
     {
         header.magic = RPC_MAGIC_NUMBER;
         header.version = RPC_VERSION;
+        header.need_return = false;
         header.seqno = Guid::GetGuid();
         header.body_length = 0;
         bzero(&header.servicename, sizeof(header.servicename));
@@ -45,5 +48,6 @@ struct RpcMessage
 struct RpcResult
 {
     int seqno;
-    int retval;
+    int type; // 1 - int, 2 - float, 3 - string
+    char return_buffer[MAX_RPC_RETURN_VALUE];
 };

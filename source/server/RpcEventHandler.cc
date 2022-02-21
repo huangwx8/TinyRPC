@@ -33,7 +33,7 @@ RpcRequestHandler::RpcRequestHandler(ReturnValuePipe* pipe, FileDescriptorEventD
 void RpcRequestHandler::HandleReadEvent(int connfd)
 {
     RpcMessage Message;
-    int TaskRetVal = -1;
+    RpcResult Result;
     int recv_bytes;
 
     recv_bytes = recv(connfd, &Message.header, sizeof(RpcHeader), 0); // read header
@@ -76,16 +76,22 @@ void RpcRequestHandler::HandleReadEvent(int connfd)
         if (_dictionary.find(servicename) != _dictionary.end())
         {
             RpcServiceBase* Service = _dictionary[servicename];
-            TaskRetVal = Service->Handle(Message);
+            Result = Service->Handle(Message);
         }
         else 
         {
             log_dev("RpcRequestHandler::HandleReadEvent: Warning! Service [%s] not found\n", Message.header.servicename);
+            return;
         }
+        
+        Result.seqno = Message.header.seqno;
+
+        // 如果报文中明确标识了需要服务端发回返回值，则需要把这个Result入队，并激活OUT事件
+        if (Message.header.need_return) {
+            _pipe->Write(connfd, Result);
+        }
+        _finished->FileDescriptorEventDone(connfd);
     }
-    
-    _pipe->Write(connfd, {Message.header.seqno, TaskRetVal});
-    _finished->FileDescriptorEventDone(connfd);
 }
 
 void RpcRequestHandler::AddProxy(RpcServiceBase* Service)

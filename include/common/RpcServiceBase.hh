@@ -3,32 +3,52 @@
 #include <functional>
 #include <common/RpcTypes.hh>
 
+#ifdef BUILD_CLIENT
+#include <client/RpcClient.hh>
+#include <client/CallbacksHandler.hh>
+#endif
+
 class RpcServiceBase
 {
     /** Common section */
 public:
-    RpcServiceBase();
+    RpcServiceBase() {};
     virtual ~RpcServiceBase() = default;
-    const char* GetServiceName();
+    const char* GetServiceName() { return ServiceName; };
 protected:
     const char* ServiceName = "None";
 
 #ifdef BUILD_SERVER
     /** Server section */
 public:
-    virtual int Handle(const RpcMessage& Context);
+    virtual RpcResult Handle(const RpcMessage& Context) = 0;
 #endif
 
 #ifdef BUILD_CLIENT
+friend RpcClient;
     /** Client section */
-    using FCallback = std::function<void(int)>;
-    using FSendChannel = std::function<void(const RpcMessage&, FCallback)>;
 public:
-    virtual void Invoke(const RpcMessage& Context);
-    void SetCallback(const FCallback&);
-    void SetSendChannel(const FSendChannel&);
+    void Invoke(const RpcMessage& Context)
+    {
+        if (client) 
+        {
+            client->SendRequest(Context);
+        }
+    }
+
+    template<typename T>
+    void AsyncInvoke(const RpcMessage& Context, T func)
+    {
+        if (client) 
+        {
+            // 注册回调
+            client->GetCallbacksHandler().Register(Context.header.seqno, func);
+            // 发送报文
+            Context.header.need_return = true;
+            client->SendRequest(Context);
+        }
+    }
 private:
-    FSendChannel SendChannel;
-    FCallback Callback;
+    RpcClient* client = nullptr;
 #endif
 };

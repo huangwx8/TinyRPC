@@ -3,6 +3,7 @@
 #include <common/RpcTypes.hh>
 #include <serialization/Serializer.hh>
 #include <string.h>
+#include <string>
 
 using string = char[512];
 
@@ -92,16 +93,24 @@ strcpy(__RpcMessage.header.servicename, GetServiceName());\
     Invoke(__RpcMessage);\
 }
 
+RpcResult ToRpcResult(int i);
+
+RpcResult ToRpcResult(float f);
+
+RpcResult ToRpcResult(std::string s);
+
 #define SERVER_EXEC_RPC(RpcImpl)\
 {\
-    RpcImpl();\
+    auto ret = RpcImpl();\
+    return ToRpcResult(ret);\
 }
 
 #define SERVER_EXEC_RPC_OneParam(RpcImpl, T1)\
 {\
     T1 Arg1;\
     ParseParam(&(Context.body.parameters[0]), #T1, &Arg1);\
-    return RpcImpl(Arg1);\
+    auto ret = RpcImpl(Arg1);\
+    return ToRpcResult(ret);\
 }
 
 #define SERVER_EXEC_RPC_TwoParams(RpcImpl, T1, T2)\
@@ -109,7 +118,8 @@ strcpy(__RpcMessage.header.servicename, GetServiceName());\
     T1 Arg1;\
     T2 Arg2;\
     ParseParam(&(Context.body.parameters[0]), #T1, &Arg1, #T2, &Arg2);\
-    return RpcImpl(Arg1, Arg2);\
+    auto ret = RpcImpl(Arg1, Arg2);\
+    return ToRpcResult(ret);\
 }
 
 #define SERVER_EXEC_RPC_ThreeParams(RpcImpl, T1, T2, T3)\
@@ -118,5 +128,6 @@ strcpy(__RpcMessage.header.servicename, GetServiceName());\
     T2 Arg2;\
     T3 Arg3;\
     ParseParam(&(Context.body.parameters[0]), #T1, &Arg1, #T2, &Arg2, #T3, &Arg3);\
-    return RpcImpl(Arg1, Arg2, Arg3);\
+    auto ret = RpcImpl(Arg1, Arg2, Arg3);\
+    return ToRpcResult(ret);\
 }

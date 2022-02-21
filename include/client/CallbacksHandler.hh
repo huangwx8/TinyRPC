@@ -1,15 +1,35 @@
 #pragma once
 
+#include <string>
 #include <vector>
 #include <functional>
 
 #include <runtime/handlemodel/EventHandler.hh>
 
-class RpcClient;
+class CallbackFunction
+{
+public:
+    CallbackFunction();
+    ~CallbackFunction();
+    
+    void Exec(int);
+    void Exec(float);
+    void Exec(std::string);
+
+    void Register(std::function<void(int)>);
+    void Register(std::function<void(float)>);
+    void Register(std::function<void(std::string)>);
+    
+private:
+    void Free();
+
+    std::function<void(int)>* IntCallback;
+    std::function<void(float)>* FloatCallback;
+    std::function<void(std::string)>* StringCallback;
+};
 
 class CallbacksHandler: public EventHandler
 {
-    friend RpcClient;
 public:
     CallbacksHandler();
     ~CallbacksHandler();
@@ -20,7 +40,9 @@ public:
     virtual void HandleReadEvent(int Fd) override;
 
     void Register(int, std::function<void(int)>);
+    void Register(int, std::function<void(float)>);
+    void Register(int, std::function<void(std::string)>);
 
 private:
-    std::vector<std::function<void(int)>> CallidCallbackMapping;
+    std::vector<CallbackFunction> CallidCallbackMapping;
 };

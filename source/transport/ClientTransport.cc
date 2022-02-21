@@ -98,6 +98,8 @@ void ClientTransport::Send(const RpcMessage& Message)
 {
     char buf[MAX_BUFFER];
     int size = Serializer::Serialize(&Message, buf);
+    log_dev("body_length = %d\n", Message.header.body_length);
+    log_dev("size = %d\n", size);
 
     // send msg, it would not block
     int ret = send(Connfd, buf, size, 0);

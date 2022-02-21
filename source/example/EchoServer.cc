@@ -9,7 +9,7 @@
 #include <server/RpcServer.hh>
 
 
-int EchoServiceImpl::Handle(const RpcMessage& Context)
+RpcResult EchoServiceImpl::Handle(const RpcMessage& Context)
 {
     SERVER_EXEC_RPC_ThreeParams(Echo, string, float, int);
 }
@@ -20,7 +20,7 @@ int EchoServiceImpl::Echo(const char* Message, float FloatNum, int IntegerNum)
     return 8888;
 }
 
-int GcdServiceImpl::Handle(const RpcMessage& Context)
+RpcResult GcdServiceImpl::Handle(const RpcMessage& Context)
 {
     SERVER_EXEC_RPC_TwoParams(Gcd, int, int);
 }
