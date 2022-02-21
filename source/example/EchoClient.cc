@@ -11,28 +11,22 @@
 #include <common/ArgsParser.hh>
 #include <client/RpcClient.hh>
 
-std::string EchoServiceProxy::Echo(const char* Message, float FloatNum, int IntegerNum)
+std::string EchoServiceProxy::Echo(std::string data)
 {
-    CLIENT_CALL_RPC_ThreeParams(Message, FloatNum, IntegerNum);
+    CLIENT_CALL_RPC_OneParam(data);
     return {};
 }
 
-std::string AsyncEchoServiceProxy::Echo(const char* Message, float FloatNum, int IntegerNum)
+std::string AsyncEchoServiceProxy::Echo(std::string data)
 {
-    CLIENT_CALL_RPC_ThreeParams_Asynchronously(_callback, Message, FloatNum, IntegerNum);
+    CLIENT_CALL_RPC_OneParam_Asynchronously(&AsyncEchoServiceProxy::EchoCallback, data);
     return {};
 }
 
-int GcdServiceProxy::Gcd(int x, int y)
+void AsyncEchoServiceProxy::EchoCallback(std::string return_value)
 {
-    CLIENT_CALL_RPC_TwoParams(x ,y);
-    return 0;
-}
-
-int AsyncGcdServiceProxy::Gcd(int x, int y)
-{
-    CLIENT_CALL_RPC_TwoParams_Asynchronously(_callback, x ,y);
-    return 0;
+    log_dev("Received return value from server.\n");
+    log_dev("return_value = %s\n", return_value.c_str());
 }
 
 static RpcClient::Options GetOptions(int argc, char* argv[])
@@ -54,18 +48,11 @@ int main(int argc, char* argv[])
     auto options = GetOptions(argc, argv);
     auto&& ClientStub = RpcClient::GetRpcClient(options);
 
-    std::function<void(std::string)> cb1 = [](std::string s) {
-        log_dev("Echo() remote procedure call received: return %s\n", s.c_str());
-    };
-    auto EchoPtr = ClientStub->GetProxy<AsyncEchoServiceProxy>(cb1);
-    EchoPtr->Echo("fuck c++", 114.514, 1919810);
-    EchoPtr->Echo("thanku c++", 3.14159, 198434);
+    auto EchoPtr = ClientStub->GetProxy<EchoServiceProxy>();
+    auto AsyncEchoPtr = ClientStub->GetProxy<AsyncEchoServiceProxy>();
 
-    std::function<void(int)> cb2 = [](int x) {
-        log_dev("Gcd() remote procedure call received: return %d\n", x);
-    };
-    auto GcdPtr = ClientStub->GetProxy<AsyncGcdServiceProxy>(cb2);
-    GcdPtr->Gcd(1344, 42);
+    EchoPtr->Echo("hello world!");
+    AsyncEchoPtr->Echo("async hello world!");
 
     // 等待服务器的返回值
     sleep(10);

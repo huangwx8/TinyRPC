@@ -60,6 +60,19 @@ int PackParam(char* Out, const char*& In, ArgumentTypes... Arguments)
     return Offset + PackParam(Out + Offset, Arguments...);
 }
 
+template<typename... ArgumentTypes>
+int PackParam(char* Out, std::string& In, ArgumentTypes... Arguments)
+{
+    int Offset = Serializer::Serialize(In.c_str(), Out, "string");
+    return Offset + PackParam(Out + Offset, Arguments...);
+}
+
+template<typename... ArgumentTypes>
+int PackParam(char* Out, const std::string& In, ArgumentTypes... Arguments)
+{
+    int Offset = Serializer::Serialize(In.c_str(), Out, "string");
+    return Offset + PackParam(Out + Offset, Arguments...);
+}
 
 #define INIT_RPCMESSAGE()\
 RpcMessage __RpcMessage;\

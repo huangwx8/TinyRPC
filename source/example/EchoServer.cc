@@ -12,34 +12,14 @@
 
 RpcResult EchoServiceImpl::Handle(const RpcMessage& Context)
 {
-    SERVER_EXEC_RPC_ThreeParams(Echo, string, float, int);
+    SERVER_EXEC_RPC_OneParam(Echo, string);
 }
 
-std::string EchoServiceImpl::Echo(const char* Message, float FloatNum, int IntegerNum)
+std::string EchoServiceImpl::Echo(std::string data)
 {
-    char str[512];
-    sprintf(str, "Echo: Message=%s, FloatNum=%.3f, IntegerNum=%d\n", Message, FloatNum, IntegerNum);
-    log_dev(str);
-    return std::string(str);
-}
-
-RpcResult GcdServiceImpl::Handle(const RpcMessage& Context)
-{
-    SERVER_EXEC_RPC_TwoParams(Gcd, int, int);
-}
-
-int GcdServiceImpl::Gcd(int x, int y)
-{
-    std::function<int (int,int)> GcdRucursive = [&GcdRucursive](int _x, int _y)
-    {
-        int rem = _x % _y;
-        if (rem == 0)
-        {
-            return _y;
-        }
-        return GcdRucursive(_y, rem);
-    };
-    return x > y ? GcdRucursive(x, y) : GcdRucursive(y, x);
+    std::string echo_data = "Server Echo: " + data;
+    log_dev("EchoServiceImpl::Echo: %s\n", echo_data.c_str());
+    return echo_data;
 }
 
 static RpcServer::Options GetOptions(int argc, char* argv[])
@@ -65,13 +45,11 @@ static RpcServer::Options GetOptions(int argc, char* argv[])
 int main(int argc, char* argv[])
 {
     EchoServiceImpl EchoServer;
-    GcdServiceImpl GcdServer;
     auto options = GetOptions(argc, argv);
     RpcServer ServerStub(options);
     
     // 实现绑定到RPC服务端
     ServerStub.RegisterService(&EchoServer);
-    ServerStub.RegisterService(&GcdServer);
 
     // 启动RPC服务端
     ServerStub.Main(argc, argv);
