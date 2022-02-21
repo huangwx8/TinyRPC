@@ -44,7 +44,7 @@ int Serializer::Deserialize(const char* In, void* Out, const char* OutType)
 int Serializer::Serialize(const RpcMessage* In ,char* Out)
 {
     memcpy(Out, &In->header, sizeof(RpcHeader));
-    memcpy(Out, &In->body, In->header.body_length);
+    memcpy(Out + sizeof(RpcHeader), &In->body, In->header.body_length);
     return sizeof(RpcHeader) + In->header.body_length;
 }
 

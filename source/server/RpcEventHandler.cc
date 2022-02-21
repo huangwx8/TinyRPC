@@ -33,28 +33,34 @@ RpcRequestHandler::RpcRequestHandler(ReturnValuePipe* pipe, FileDescriptorEventD
 void RpcRequestHandler::HandleReadEvent(int connfd)
 {
     RpcMessage Message;
-    char buf[MAX_BUFFER];
     int TaskRetVal = -1;
-    int ret;
+    int recv_bytes;
 
-    ret = recv(connfd, buf, MAX_BUFFER, 0);
-    if (ret < 0)
+    recv_bytes = recv(connfd, &Message.header, sizeof(RpcHeader), 0); // read header
+    if (recv_bytes < 0)
     {
         // bad read
         if (errno != EAGAIN)
         {
             log_err("RpcRequestHandler::HandleReadEvent: Bad recv\n");
             exit(1);
-            return;
         }
+        return;
     }
-    // every bit has been read
-    else if (ret == 0)
+    else if (recv_bytes != sizeof(RpcHeader))
     {
+        log_err("RpcRequestHandler::HandleReadEvent: Bad packet\n");
+        return;
     }
     else 
     {
-        ret = Serializer::Deserialize(buf, &Message);
+        recv_bytes = recv(connfd, &Message.body, Message.header.body_length, 0); // read body
+        if (recv_bytes != Message.header.body_length) 
+        {
+            log_err("RpcRequestHandler::HandleReadEvent: Bad packet\n");
+            return;
+        }
+
         log_dev("RpcRequestHandler::HandleReadEvent: get rpc request from %d\n", connfd);
         if (Message.header.magic != RPC_MAGIC_NUMBER) {
             log_dev("RpcRequestHandler::HandleReadEvent: magic number does not match, [%d] excepted but [%d] received\n",
