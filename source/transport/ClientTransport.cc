@@ -7,11 +7,11 @@
 #include <unistd.h>
 #include <string.h>
 #include <string>
+#include <sys/epoll.h>
 
 #include <transport/ClientTransport.hh>
 
 #include <runtime/handlemodel/EventHandlerManager.hh>
-#include <runtime/iomodel/Poller.hh>
 
 #include <serialization/Serializer.hh>
 
@@ -38,12 +38,7 @@ static int ConnectTo(std::string ip, int port)
     return sockfd;
 }
 
-ClientTransport::ClientTransport():
-    Connfd(-1),
-    OnNoRequestToSend([](){})
-{
-   
-}
+ClientTransport::ClientTransport(): _poller(false), Connfd(-1), PendingRequests() {}
 
 ClientTransport::~ClientTransport()
 {
@@ -60,16 +55,17 @@ void ClientTransport::HandleWriteEvent(int Fd)
 {
     assert(Fd == Connfd);
 
-    // 如果当前没有等待发送的Rpc，则关闭EPOLLOUT
-    if (PendingRequests.empty())
+    std::unique_lock<std::mutex> lock(mu); // serialize Push() and HandleWriteEvent()
+
+    if (!PendingRequests.empty())
     {
-        OnNoRequestToSend();
-    }
-    else 
-    {
-        RpcMessage msg = PendingRequests.front();
+        Send(PendingRequests.front());
         PendingRequests.pop();
-        Send(msg);
+    }
+    // 如果当前没有等待发送的Rpc，则关闭EPOLLOUT
+    if (PendingRequests.empty()) 
+    {
+        _poller.ModEvent(Connfd, EPOLLIN | EPOLLERR | EPOLLRDHUP);
     }
 }
 
@@ -81,7 +77,21 @@ int ClientTransport::Connect(std::string ip, int port)
         log_err("Connect failed");
         exit(1);
     }
+    // 监听所有事件
+    _poller.AddEvent(Connfd, EPOLLIN | EPOLLERR | EPOLLRDHUP);
     return Connfd;
+}
+
+void ClientTransport::Push(const RpcMessage& Message) 
+{
+    assert(Connfd != -1);
+
+    std::unique_lock<std::mutex> lock(mu); // serialize Push() and HandleWriteEvent()
+
+    // 新请求入队
+    PendingRequests.push(Message);
+    // 打开EPOLLOUT
+    _poller.ModEvent(Connfd, EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLRDHUP);
 }
 
 void ClientTransport::Send(const RpcMessage& Message)

@@ -47,3 +47,8 @@ void CallbacksHandler::HandleReadEvent(int Fd)
 
     Guid::RecycleGuid(seqno);
 }
+
+void CallbacksHandler::Register(int seqno, std::function<void(int)> callback) 
+{
+    CallidCallbackMapping[seqno] = callback;
+}

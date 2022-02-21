@@ -71,17 +71,15 @@ private:
      */
     void SendRequest(const RpcMessage& Message, std::function<void(int)>);
     
-    Options options;
+    Options _options;
 
     // worker
-    EventHandlerRouter _router;
-    Poller _poller;
     ClientTransport _transport;
+    EventHandlerRouter _router;
     CallbacksHandler _callback_handler;
 
     // concurrency
-    mutable std::mutex m;
-    mutable std::mutex m2;
-    std::atomic<bool> initialized;
+    mutable std::mutex m{};
+    std::atomic<bool> _initialized;
     std::atomic<bool> m_stop;
 };

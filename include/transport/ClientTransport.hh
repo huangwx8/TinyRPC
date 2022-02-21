@@ -1,16 +1,18 @@
 #pragma once
 
+#include <mutex>
 #include <queue>
 #include <string>
 #include <functional>
 
-#include <runtime/handlemodel/EventHandler.hh>
 #include <common/RpcTypes.hh>
+
+#include <runtime/handlemodel/EventHandler.hh>
+#include <runtime/iomodel/Poller.hh>
 
 
 class ClientTransport: public EventHandler
 {
-    friend class RpcClient;
 public:
     ClientTransport();
     virtual ~ClientTransport();
@@ -28,11 +30,23 @@ public:
      */
     int Connect(std::string ip, int port);
     /**
+     * Queue a new rpc request
+     */
+    void Push(const RpcMessage& Message);
+
+    Poller& GetPoller() { return _poller; }
+
+private:
+    /**
      * Send wrapper
      */
     void Send(const RpcMessage& Message);
-private:
+    
+    // worker
+    Poller _poller;
+    mutable std::mutex mu{};
+    // connection
     int Connfd;
+    // queue
     std::queue<RpcMessage> PendingRequests;
-    std::function<void()> OnNoRequestToSend;
 };

@@ -19,6 +19,8 @@ public:
      */
     virtual void HandleReadEvent(int Fd) override;
 
+    void Register(int, std::function<void(int)>);
+
 private:
     std::vector<std::function<void(int)>> CallidCallbackMapping;
 };

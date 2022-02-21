@@ -24,12 +24,12 @@ void EventHandlerRouter::HandleEvent(int Fd, EventType Type)
     }
 }
 
-RpcClient::RpcClient(Options _options):
-    options(_options),
-    _router(),
-    _poller(false),
+RpcClient::RpcClient(Options options):
+    _options(options),
     _transport(),
+    _router(),
     _callback_handler(),
+    _initialized(false),
     m_stop(false)
 {
     start_log(options.log_path.c_str());
@@ -46,15 +46,8 @@ RpcClient::~RpcClient()
 
 void RpcClient::Initialize()
 {
-    _transport.OnNoRequestToSend = [this]()
-    {
-        std::unique_lock<std::mutex> pollerlock(m2);
-        // 关闭EPOLLOUT
-        _poller.ModEvent(_transport.Connfd, EPOLLIN | EPOLLERR | EPOLLRDHUP);
-    };
-
     // 建立与服务器的连接
-    int Connfd = _transport.Connect(options.svr_ip, options.svr_port);
+    int Connfd = _transport.Connect(_options.svr_ip, _options.svr_port);
 
     // 由Transport处理CLOSE事件
     _router.Closehdl = &_transport;
@@ -62,10 +55,8 @@ void RpcClient::Initialize()
     _router.Writehdl = &_transport;
     // 由Callbackshdl处理READ事件
     _router.Readhdl = &_callback_handler;
-    // 监听所有事件
-    _poller.AddEvent(Connfd, EPOLLIN | EPOLLERR | EPOLLRDHUP);
 
-    initialized = true;
+    _initialized = true;
 }
 
 int RpcClient::Main(int argc, char* argv[])
@@ -78,7 +69,7 @@ int RpcClient::Main(int argc, char* argv[])
     while (!m_stop)
     {
         // wait, but not block, or this loop may dead
-        auto&& tasks = _poller.Dispatch(timeout, _router);
+        auto&& tasks = _transport.GetPoller().Dispatch(timeout, _router);
         // process
         for (auto&& task : tasks)
         {
@@ -91,19 +82,16 @@ int RpcClient::Main(int argc, char* argv[])
 
 void RpcClient::SendRequest(const RpcMessage& Message, std::function<void(int)> Callback)
 {
-    std::unique_lock<std::mutex> sendlock(m2);
-    // if not initialized, interrupt
-    if (!initialized)
+    // if not _initialized, interrupt
+    if (!_initialized)
     {
-        log_err("RpcClient::SendRequest Not initialized!\n");
+        log_err("RpcClient::SendRequest Not _initialized!\n");
         return;
     }
     // 注册回调
-    _callback_handler.CallidCallbackMapping[Message.header.seqno] = Callback;
+    _callback_handler.Register(Message.header.seqno, Callback);
     // 新请求入队
-    _transport.PendingRequests.push(Message);
-    // 打开EPOLLOUT
-    _poller.ModEvent(_transport.Connfd, EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLRDHUP);
+    _transport.Push(Message);
 }
 
 std::shared_ptr<RpcClient> RpcClient::GetRpcClient(Options options)
