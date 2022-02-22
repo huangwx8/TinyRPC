@@ -64,7 +64,7 @@ void ServerTransport::Listen(std::string ip, int port)
     if (_listenfd >= 0)
     {
         _event_handler_manager.AttachEventHandler(_listenfd, EventHandler::READ_EVENT, this);
-        _reactor.GetPoller().AddEvent(_listenfd, EPOLLIN | EPOLLERR | EPOLLRDHUP);
+        _reactor.GetPoller().AddEvent(_listenfd, EPOLLIN | EPOLLERR | EPOLLRDHUP | EPOLLONESHOT);
         log_dev("ServerTransport::Listen: Start listening at ip %s, port %d\n", ip.c_str(), port);
     }
     else 
@@ -85,6 +85,7 @@ void ServerTransport::HandleReadEvent(int Fd)
     _event_handler_manager.AttachEventHandler(Connfd, EventHandler::WRITE_EVENT, _socket_writer);
     _event_handler_manager.AttachEventHandler(Connfd, EventHandler::CLOSE_EVENT, this);
     _reactor.GetPoller().AddEvent(Connfd, EPOLLIN | EPOLLERR | EPOLLRDHUP | EPOLLONESHOT);
+    _reactor.GetPoller().ModEvent(_listenfd, EPOLLIN | EPOLLERR | EPOLLRDHUP | EPOLLONESHOT);
 }
 
 void ServerTransport::HandleCloseEvent(int Fd)
