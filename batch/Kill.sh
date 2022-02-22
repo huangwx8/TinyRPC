@@ -1,2 +1,2 @@
 #/bin/sh
-pgrep Echo | xargs kill -9
+pgrep Server | xargs kill -9

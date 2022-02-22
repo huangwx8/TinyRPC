@@ -28,9 +28,9 @@ void RpcServer::FileDescriptorEventDone(int fd)
 RpcServer::RpcServer(Options options):
     _options(options),
     _pipe(),
+    _transport(&_receiver, &_sender),
     _receiver(&_pipe, this),
-    _sender(&_pipe, this),
-    _transport(&_receiver, &_sender)
+    _sender(&_pipe, this)
 {
     start_log(options.log_path.c_str());
 }

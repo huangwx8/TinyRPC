@@ -18,7 +18,7 @@ public:
     Poller& GetPoller() { return _poller; }
 
 private:
-    EventHandler* _event_handler;
     ThreadPool _thread_pool;
+    EventHandler* _event_handler;
     Poller _poller;
 };

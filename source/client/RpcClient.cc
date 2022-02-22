@@ -47,7 +47,7 @@ RpcClient::~RpcClient()
 void RpcClient::Initialize()
 {
     // 建立与服务器的连接
-    int Connfd = _transport.Connect(_options.svr_ip, _options.svr_port);
+    _transport.Connect(_options.svr_ip, _options.svr_port);
 
     // 由Transport处理CLOSE事件
     _router.Closehdl = &_transport;

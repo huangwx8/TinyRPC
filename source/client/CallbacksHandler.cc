@@ -13,12 +13,6 @@
 #include <common/Defines.hh>
 #include <common/Logger.hh>
 
-static void ErrorCallback(int retval)
-{
-    log_err("Uninitialized callback function, client may receive a bad rpc response packet.");
-    exit(1);
-}
-
 CallbackFunction::CallbackFunction():
     IntCallback(nullptr),
     FloatCallback(nullptr),
@@ -58,16 +52,19 @@ void CallbackFunction::Exec(std::string s)
 
 void CallbackFunction::Register(std::function<void(int)> func)
 {
+    Free();
     IntCallback = new std::function<void(int)> (func);
 }
 
 void CallbackFunction::Register(std::function<void(float)> func)
 {
+    Free();
     FloatCallback = new std::function<void(float)> (func);
 }
 
 void CallbackFunction::Register(std::function<void(std::string)> func)
 {
+    Free();
     StringCallback = new std::function<void(std::string)> (func);
 }
 

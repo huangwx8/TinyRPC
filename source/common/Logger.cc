@@ -1,4 +1,3 @@
-#include <cstdio>
 #include <common/Logger.hh>
 
 FILE* logfile = nullptr;

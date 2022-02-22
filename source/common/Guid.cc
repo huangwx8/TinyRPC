@@ -1,7 +1,7 @@
 #include <common/Guid.hh>
 
 #define MAX_GUID 1024
-#define GET(i) (i < Heap.size() ? Heap[i] : 0)
+#define GET(i) ((size_t)i < Heap.size() ? Heap[i] : 0)
 
 std::vector<int> Guid::Heap = std::vector<int>();
 int Guid::Bound = 0;
@@ -19,7 +19,7 @@ int Guid::GetGuid()
         while (1) 
         {
             int nvalue = Heap[nid];
-            int lid = nid << 1 + 1, rid = lid + 1;
+            int lid = (nid << 1) + 1, rid = lid + 1;
             int lvalue = GET(lid), rvalue = GET(rid);
             int nextnid = nid;
             if (lvalue && nvalue > lvalue)

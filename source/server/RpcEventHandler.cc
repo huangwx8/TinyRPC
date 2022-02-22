@@ -111,5 +111,6 @@ void RpcResultSender::HandleWriteEvent(int connfd)
     
     RpcResult Result = _pipe->Read(connfd);
     int ret = send(connfd, &Result, sizeof(RpcResult), 0);
+    assert(ret != -1);
     _finished->FileDescriptorEventDone(connfd);
 }

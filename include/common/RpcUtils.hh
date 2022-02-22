@@ -17,60 +17,15 @@ void ParseParam(const char* In, const char* Type, void* Out, ArgumentTypes... Ar
 }
 
 int PackParam(char* Out);
+int PackParam(char* Out, int In);
+int PackParam(char* Out, float In);
+int PackParam(char* Out, const char* In);
+int PackParam(char* Out, std::string In);
 
-template<typename... ArgumentTypes>
-int PackParam(char* Out, const int& In, ArgumentTypes... Arguments)
+template<typename T, typename... ArgumentTypes>
+int PackParam(char* Out, T In, ArgumentTypes... Arguments)
 {
-    int Offset = Serializer::Serialize(&In, Out, "int");
-    return Offset + PackParam(Out + Offset, Arguments...);
-}
-
-template<typename... ArgumentTypes>
-int PackParam(char* Out, int& In, ArgumentTypes... Arguments)
-{
-    int Offset = Serializer::Serialize(&In, Out, "int");
-    return Offset + PackParam(Out + Offset, Arguments...);
-}
-
-template<typename... ArgumentTypes>
-int PackParam(char* Out, const float& In, ArgumentTypes... Arguments)
-{
-    int Offset = Serializer::Serialize(&In, Out, "float");
-    return Offset + PackParam(Out + Offset, Arguments...);
-}
-
-template<typename... ArgumentTypes>
-int PackParam(char* Out, float& In, ArgumentTypes... Arguments)
-{
-    int Offset = Serializer::Serialize(&In, Out, "float");
-    return Offset + PackParam(Out + Offset, Arguments...);
-}
-
-template<typename... ArgumentTypes>
-int PackParam(char* Out, char*& In, ArgumentTypes... Arguments)
-{
-    int Offset = Serializer::Serialize(In, Out, "string");
-    return Offset + PackParam(Out + Offset, Arguments...);
-}
-
-template<typename... ArgumentTypes>
-int PackParam(char* Out, const char*& In, ArgumentTypes... Arguments)
-{
-    int Offset = Serializer::Serialize(In, Out, "string");
-    return Offset + PackParam(Out + Offset, Arguments...);
-}
-
-template<typename... ArgumentTypes>
-int PackParam(char* Out, std::string& In, ArgumentTypes... Arguments)
-{
-    int Offset = Serializer::Serialize(In.c_str(), Out, "string");
-    return Offset + PackParam(Out + Offset, Arguments...);
-}
-
-template<typename... ArgumentTypes>
-int PackParam(char* Out, const std::string& In, ArgumentTypes... Arguments)
-{
-    int Offset = Serializer::Serialize(In.c_str(), Out, "string");
+    int Offset = PackParam(Out, In);
     return Offset + PackParam(Out + Offset, Arguments...);
 }
 

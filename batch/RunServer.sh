@@ -1,2 +1,2 @@
 #/bin/sh
-./bin/EchoServer -log=server.log &
+./bin/Server -log=server.log &

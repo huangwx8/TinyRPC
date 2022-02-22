@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-g -std=c++11 -lpthread
+CFLAGS=-g -std=c++11 -lpthread -Wall
 SERVERBUILDFLAGS=-DBUILD_SERVER
 CLIENTBUILDFLAGS=-DBUILD_CLIENT
 
@@ -24,13 +24,13 @@ TRANSPORTOBJECTS=$(patsubst ${SRCDIR}/transport/%.cc,${OBJDIR}/transport/%.o,$(w
 STRANSPORTOBJECTS=$(patsubst %.o,%.server.o,${TRANSPORTOBJECTS})
 CTRANSPORTOBJECTS=$(patsubst %.o,%.client.o,${TRANSPORTOBJECTS})
 
-SERVEROBJECTS=$(patsubst ${SRCDIR}/server/%.cc,${OBJDIR}/server/%.server.o,$(wildcard ${SRCDIR}/server/*.cc))
-CLIENTOBJECTS=$(patsubst ${SRCDIR}/client/%.cc,${OBJDIR}/client/%.client.o,$(wildcard ${SRCDIR}/client/*.cc))
+SERVEROBJECTS=$(patsubst ${SRCDIR}/server/%.cc,${OBJDIR}/server/%.server.o,$(wildcard ${SRCDIR}/server/*.cc)) ${OBJDIR}/example/NameService.server.o ${OBJDIR}/example/NameServer.server.o
+CLIENTOBJECTS=$(patsubst ${SRCDIR}/client/%.cc,${OBJDIR}/client/%.client.o,$(wildcard ${SRCDIR}/client/*.cc)) ${OBJDIR}/example/NameService.client.o ${OBJDIR}/example/NameClient.client.o
 
-OUTSERVER=${OUTDIR}/EchoServer
-OUTCLIENT=${OUTDIR}/EchoClient
-OUTSERVEROBJECTS=${OBJDIR}/example/EchoServer.server.o ${SCOMMONOBJECTS} ${SSERIALIZATIONOBJECTS} ${SRUNTIMEOBJECTS} ${STRANSPORTOBJECTS} ${SERVEROBJECTS}
-OUTCLIENTOBJECTS=${OBJDIR}/example/EchoClient.client.o ${CCOMMONOBJECTS} ${CSERIALIZATIONOBJECTS} ${CRUNTIMEOBJECTS} ${CTRANSPORTOBJECTS} ${CLIENTOBJECTS}
+OUTSERVER=${OUTDIR}/Server
+OUTCLIENT=${OUTDIR}/Client
+OUTSERVEROBJECTS=${OBJDIR}/example/Server.server.o ${SCOMMONOBJECTS} ${SSERIALIZATIONOBJECTS} ${SRUNTIMEOBJECTS} ${STRANSPORTOBJECTS} ${SERVEROBJECTS}
+OUTCLIENTOBJECTS=${OBJDIR}/example/Client.client.o ${CCOMMONOBJECTS} ${CSERIALIZATIONOBJECTS} ${CRUNTIMEOBJECTS} ${CTRANSPORTOBJECTS} ${CLIENTOBJECTS}
 
 server: ${OUTSERVER}
 
