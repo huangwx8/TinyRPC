@@ -1,6 +1,8 @@
 #include <cstring>
 #include <unistd.h>
 
+#include <future>
+
 #include <common/Logger.hh>
 #include <common/ArgsParser.hh>
 
@@ -22,16 +24,41 @@ static RpcClient::Options GetOptions(int argc, char* argv[])
     return RpcClient::Options{.svr_ip = std::string(ip), .svr_port = port, .log_path = log_path ? "log/" + std::string(log_path) : std::string()};
 }
 
+void crazy_read(std::shared_ptr<RpcClient> ClientStub)
+{
+    auto Getter = ClientStub->GetProxy<NameGetterProxy>();
+    for (int i = 0; i < 100000; i += (std::rand() % 1000)) {
+        log_dev("make a read request at %d\n", i);
+        Getter->GetName(i);
+    }
+}
+
+void crazy_write(std::shared_ptr<RpcClient> ClientStub)
+{
+    auto Setter = ClientStub->GetProxy<NameSetterProxy>();
+    std::string data = "I can see Russia from my house!";
+    for (int i = 0; i < 100000; i += (std::rand() % 1000)) {
+        std::string code = data;
+        for (char& ch : code) {
+            if (ch >= 'a' && ch <= 'z') {
+                ch = 'a' + (ch + i - 'a') % 26;
+            }
+        }
+        log_dev("make a write request at %d with %s\n", i, code.c_str());
+        Setter->SetName(i, code);
+    }
+}
+
 int main(int argc, char* argv[])
 {
     auto options = GetOptions(argc, argv);
     auto&& ClientStub = RpcClient::GetRpcClient(options);
 
-    auto Getter = ClientStub->GetProxy<NameGetterProxy>();
-    auto Setter = ClientStub->GetProxy<NameSetterProxy>();
+    auto fu1 = std::async(&crazy_read, ClientStub);
+    auto fu2 = std::async(&crazy_write, ClientStub);
 
-    Setter->SetName(8888, "history of mistery");
-    Getter->GetName(8888);
+    fu1.wait();
+    fu2.wait();
 
     sleep(10);
 

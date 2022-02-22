@@ -31,6 +31,7 @@ int PackParam(char* Out, T In, ArgumentTypes... Arguments)
 
 #define INIT_RPCMESSAGE()\
 RpcMessage __RpcMessage;\
+if (__RpcMessage.header.seqno == -1) return {};\
 strcpy(__RpcMessage.header.servicename, GetServiceName());\
 
 #define CLIENT_CALL_RPC()\
