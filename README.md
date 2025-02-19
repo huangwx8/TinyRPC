@@ -1,10 +1,12 @@
+Here's the translation of the README into pure English:
+
 # TinyRPC
 
-## 整体设计
+## Overall Design
 
-整体模块划分方式参考 trpc-cpp。
+The module division of this system is based on trpc-cpp.
 
-请求报文和响应报文的结构定义如下
+The structure definitions for request and response messages are as follows:
 
 ```cpp
 struct RpcHeader
@@ -30,25 +32,30 @@ struct RpcResult
 };
 ```
 
-其中magic用于服务器，以快速过滤不属于本RPC协议的数据包；servicename是服务名，用于服务器识别请求类型，并派发给对应的例程；单次调用的请求和响应共享一个seqno，用于客户端分发返回值到不同的RPC协议；need_return用于标识服务器是否需要发回函数的返回值；parameters是请求体，包含函数参数；type用于客户端区分返回值类型，return_buffer包含函数返回值。
+- `magic` is used by the server to quickly filter out data packets that don't belong to this RPC protocol.
+- `servicename` is the name of the service used by the server to identify the request type and dispatch it to the corresponding routine.
+- The request and response of a single call share the same `seqno`, which helps the client distribute return values to different RPC protocols.
+- `need_return` indicates whether the server should return a function’s result.
+- `parameters` contains the function parameters.
+- `type` is used by the client to distinguish the return value type, and `return_buffer` contains the function's return value.
 
-Serialization层实现了序列化方法，用于RPC读写parameters和return_buffer两个字段。
+The Serialization layer implements serialization methods for reading and writing the `parameters` and `return_buffer` fields of the RPC.
 
-Runtime层参考 libevent，实现了带线程池的 Reactor+Epoll ET 实现io复用，对触发的事件，定义了事件处理基类EventHandler，方便上层继承重写处理逻辑。
+The Runtime layer, based on libevent, implements a Reactor+Epoll ET (edge-triggered) IO multiplexing model with a thread pool. It defines an event handling base class `EventHandler`, making it easier to inherit and override event handling logic.
 
-Transport层封装Linux底层Socket系统调用，在服务器和客户端间建立TCP通道，并负责把接受到的数据转给Runtime层。
+The Transport layer wraps Linux system calls for low-level socket communication, establishing a TCP channel between the server and client and passing received data to the Runtime layer.
 
-Common层实现了RPC调用接口，全局Uid管理，异步日志，定时器管理等通用功能。
+The Common layer implements general features like the RPC call interface, global UID management, asynchronous logging, and timer management.
 
-## 使用方法
+## Usage
 
-这里通过演示一个简单的客户端调用服务器的helloworld的用法，简单介绍本框架的使用方法。
+This section demonstrates how to call a simple server's "hello world" function to introduce the framework's usage.
 
-为了实现远端调用，你需要一个Rpc代理类，用于客户端发起(invoke)Rpc调用；同时需要在服务器完成Rpc任务的具体实现(implement)，用于具体地执行任务并发回函数返回值。
+To perform remote calls, you need an Rpc proxy class on the client side to invoke the RPC call, and you need a specific implementation on the server side to execute the task and return the function result.
 
-### 编写服务基类
+### Writing the Service Base Class
 
-继承`RpcServiceBase`，填写ServiceName用于唯一标识Rpc服务名，并增加一个接口函数，声明Rpc函数的参数，返回值。
+Inherit `RpcServiceBase`, set the `ServiceName` to uniquely identify the RPC service, and add a function declaration for the RPC function with its parameters and return values.
 
 ```cpp
 class EchoServiceBase : public RpcServiceBase
@@ -63,11 +70,11 @@ public:
 };
 ```
 
-### 编写服务具体实现
+### Writing the Service Implementation
 
-继承`EchoServiceBase`类，在服务端实现Rpc调用的具体实现。这里的一个不足点是，你需要填写一下Handle函数的实现，这是RPC的统一处理入口。
+Inherit the `EchoServiceBase` class and implement the specific RPC function on the server. One limitation is that you need to implement the `Handle` function, which is the unified entry point for RPC processing.
 
-然后，服务器的main内，启动服务器并注册服务；这时服务器就可响应所有到来的Rpc请求了。
+Then, in the server's `main`, start the server and register the service. The server will now be able to respond to incoming RPC requests.
 
 ```cpp
 class EchoServiceImpl : public EchoServiceBase
@@ -91,21 +98,20 @@ std::string EchoServiceImpl::Echo(std::string data)
     return echo_data;
 }
 
-
 int main(int argc, char* argv[])
 {
-    RpcServer ServerStub({"127.0.0.1", 8888, "server.log"}); // 获取一个RPC Server对象
-    EchoServiceImpl EchoImplementation; // 构造一个Echo服务的实现
-    ServerStub.RegisterService(&EchoImplementation); // 注册Echo服务
-    ServerStub.Main(argc, argv); // 运行RPC Server，等待并处理请求
+    RpcServer ServerStub({"127.0.0.1", 8888, "server.log"}); // Get an RPC Server object
+    EchoServiceImpl EchoImplementation; // Construct an Echo service implementation
+    ServerStub.RegisterService(&EchoImplementation); // Register Echo service
+    ServerStub.Main(argc, argv); // Run the RPC Server, waiting for and handling requests
 }
 ```
 
-### 实现单向调用
+### Implementing a One-Way Call
 
-继承`EchoServiceBase`类，在客户端实现Rpc调用代理，你只需在客户端的代理函数内添加一条宏。
+Inherit `EchoServiceBase` and implement the RPC proxy on the client side. You only need to add a macro inside the client-side proxy function.
 
-启动Rpc客户端，调用客户端方法获取服务代理对象，然后你将可以看到服务器打印了 "Server says: hello world!"。
+Start the RPC client, call the client method to get the service proxy object, and then you will see the server print "Server says: hello world!".
 
 ```cpp
 class EchoServiceProxy : public EchoServiceBase
@@ -124,16 +130,16 @@ std::string EchoServiceProxy::Echo(std::string data)
 
 int main(int argc, char* argv[])
 {
-    auto&& ClientStub = RpcClient::GetRpcClient({ "127.0.0.1", 8888, "client.log" }); // 获取一个RPC Client对象
-    auto EchoPtr = ClientStub->GetProxy<EchoServiceProxy>();// 获取一个RPC Proxy对象
-    EchoPtr->Echo("hello world!"); // 发起调用
+    auto&& ClientStub = RpcClient::GetRpcClient({ "127.0.0.1", 8888, "client.log" }); // Get an RPC Client object
+    auto EchoPtr = ClientStub->GetProxy<EchoServiceProxy>(); // Get an RPC Proxy object
+    EchoPtr->Echo("hello world!"); // Initiate the call
     return 0;
 }
 ```
 
-### 使用回调
+### Using Callbacks
 
-上面的情况下，我们在客户端调用了远程的函数，但是客户端没有得到返回值。如果想编写能获取并处理返回值的客户端程序，只需对上面的客户端代码稍作修改。
+In the above example, the client calls a remote function but does not receive a return value. To write a client program that receives and handles the return value, modify the client code slightly.
 
 ```cpp
 class AsyncEchoServiceProxy : public EchoServiceBase
@@ -159,21 +165,21 @@ void AsyncEchoServiceProxy::EchoCallback(std::string return_value)
 
 int main(int argc, char* argv[])
 {
-    auto&& ClientStub = RpcClient::GetRpcClient({ "127.0.0.1", 8888, "client.log" }); // 获取一个RPC Client对象
-    auto EchoPtr = ClientStub->GetProxy<AsyncEchoServiceProxy>();// 获取一个RPC Proxy对象
-    EchoPtr->Echo("hello world!"); // 发起调用
-    sleep(1); // 等一段时间等待返回值到达
+    auto&& ClientStub = RpcClient::GetRpcClient({ "127.0.0.1", 8888, "client.log" }); // Get an RPC Client object
+    auto EchoPtr = ClientStub->GetProxy<AsyncEchoServiceProxy>(); // Get an RPC Proxy object
+    EchoPtr->Echo("hello world!"); // Initiate the call
+    sleep(1); // Wait for the return value
     return 0;
 }
 ```
 
-可以看到我们在Proxy中增加了一段回调处理代码，用于处理从服务端到达的返回值。运行上面的客户端，可以看到客户端打印了"Received Server says: hello world!"。
+In this example, we added callback handling code to the proxy class to process the return value received from the server. Running the client will display "Received Server says: hello world!" on the client.
 
-### 同步调用
+### Synchronous Call
 
-我们很少使用同步调用，因为它会阻塞线程的执行，进而影响机器性能。但如果你追求语法的简洁，希望Proxy的返回值就是服务器的返回值，实现起来非常简单，不过你可能需要一些额外的工具帮助你阻塞掉当前的线程，比如管道或者future。
+Synchronous calls are rarely used since they block the execution of the thread and may impact performance. However, if you prefer a more concise syntax where the proxy’s return value is the server’s return value, it can be implemented easily. You may need additional tools to block the current thread, such as pipes or futures.
 
-这里给出一种使用future实现同步调用的写法。
+Here is an example of using a `future` to implement a synchronous call.
 
 ```cpp
 class SyncEchoServiceProxy : public EchoServiceBase
@@ -205,8 +211,8 @@ int main(int argc, char* argv[])
 }
 ```
 
-运行上面的客户端，客户端会打印"Server says: hello world!"，而且是main线程打印，而非异步线程通过回调打印。
+Running this client will print "Server says: hello world!" on the main thread, instead of the asynchronous thread through a callback.
 
-### 拓展
+### Expansion
 
-服务端的Handle方法的格式是固定的，完全可以交给代码生成工具实现；后续会考虑为RPC添加配套的预处理工具。
+The format of the server's `Handle` method is fixed, but it can be generated using a code generator. Future versions may consider adding auxiliary preprocessing tools for RPC.
