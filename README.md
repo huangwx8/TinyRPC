@@ -1,5 +1,3 @@
-Here's the translation of the README into pure English:
-
 # TinyRPC
 
 ## Overall Design
