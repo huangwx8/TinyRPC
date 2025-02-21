@@ -1,4 +1,4 @@
-# TinyRPC
+# DearmboatRPC
 
 ## Overall Design
 
