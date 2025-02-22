@@ -45,6 +45,17 @@ The Transport layer wraps Linux system calls for low-level socket communication,
 
 The Common layer implements general features like the RPC call interface, global UID management, asynchronous logging, and timer management.
 
+## Installation
+
+To install the package, you can simply clone the repository and use `make` command to build it.
+
+```bash
+git clone https://github.com/huangwx8/DreamboatRPC.git
+cd DreamboatRPC
+make server
+make client
+```
+
 ## Usage
 
 This section demonstrates how to call a simple server's "hello world" function to introduce the framework's usage.
